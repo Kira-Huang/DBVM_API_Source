@@ -39,13 +39,13 @@ namespace DBVM
             // 1. 呼叫 HIS API
             //===============================
             MyTimerBasic t1 = new MyTimerBasic();
-            var data = await _hospitalApi.GetSmallDrugByBarcode(request);
+            var response = await _hospitalApi.GetSmallDrugByBarcode(request);
             HIS連線時間 = t1.ToString();
 
             //===============================
             // 2. 無資料處理
             //===============================
-            if (data == null)
+            if (response.Data == null)
             {
                 returnData rd = new returnData()
                 {
@@ -62,6 +62,7 @@ namespace DBVM
             try
             {
                 OrderClass orderClass = new OrderClass();
+                var data = response.Data;
 
                 //====== 藥袋類型 ======
                 //string type = string.Empty;
@@ -136,7 +137,7 @@ namespace DBVM
             //Logger.Log(json);
             //conn_oracle.Close();
             //return json;
-            return Ok(data);
+            return Ok(response.Data);
 
         }
     }
