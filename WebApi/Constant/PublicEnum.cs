@@ -41,7 +41,10 @@ namespace DBVM_API
         出院帶藥,
         [Description("daytime")]
         [Display(Name = "日間帶藥")]
-        日間帶藥
+        日間帶藥,
+        [Description("smallbag")]
+        [Display(Name = "小藥袋")]
+        小藥袋
     }
 
     public enum enum_登入類型

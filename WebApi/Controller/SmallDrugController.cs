@@ -1,4 +1,5 @@
 ﻿using Basic;
+using DBVM_API;
 using DBVM_API.Models;
 using DBVM_API.Services;
 using HIS_DB_Lib;
@@ -65,16 +66,7 @@ namespace DBVM
                 var data = response.Data;
 
                 //====== 藥袋類型 ======
-                //string type = string.Empty;
-                //orderClass.藥袋類型 = type switch
-                //{
-                //    "E" => "急診",
-                //    "S" => "住院ST",
-                //    "B" => "住院首日量",
-                //    "O" => "門診",
-                //    "M" => "出院帶藥",
-                //    _ => ""
-                //};
+                orderClass.藥袋類型 = enum_藥袋類別.小藥袋.GetDescription();
 
                 //====== 基本欄位 ======
                 orderClass.藥袋條碼 = data.UDBC;
@@ -92,6 +84,8 @@ namespace DBVM
                 orderClass.劑量單位 = data.UDDDSPUNIT;
                 //orderClass.費用別 = 
                 //orderClass.批序 = 
+                orderClass.途徑 = data.UDDROUTE;
+                orderClass.床號 = data.HBEDNO;
 
                 //====== 就醫時間 ======
                 //string visit = SafeGet(reader, "PAC_VISITDT");
@@ -114,6 +108,7 @@ namespace DBVM
                 ////====== PRI_KEY ======
                 //string key = $"{orderClass.頻次}{orderClass.天數}{orderClass.單次劑量}{orderClass.劑量單位}";
                 //orderClass.PRI_KEY = $"{時間}-{orderClass.病歷號}-{orderClass.藥品碼}{orderClass.交易量}-{key}";
+                orderClass.PRI_KEY = data.ID;
 
                 //orderClasses.Add(orderClass);
             }

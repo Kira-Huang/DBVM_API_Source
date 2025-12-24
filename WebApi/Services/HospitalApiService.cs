@@ -185,9 +185,8 @@ namespace DBVM_API.Services
         {
             var url = $"{_baseUrl}/pharmacistLogin";
             var response = PostAndDeserializeAsync<PharmacistLoginResponse>(url, request);
-            return response;  
+            return response;
         }
-
 
         #region --- HTTP 工具方法 ---
 
