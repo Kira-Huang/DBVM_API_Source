@@ -5,8 +5,10 @@ using DBVM_API.Services;
 using HIS_DB_Lib;
 using Microsoft.AspNetCore.Mvc;
 using Oracle.ManagedDataAccess.Client;
+using SQLUI;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -20,6 +22,17 @@ namespace DBVM
     [ApiController]
     public class SmallDrugController : Controller
     {
+        private static readonly string conn_str = "Data Source=192.168.120.123:1521/sisdcp;User ID=hson_kutech;Password=3edc#$56^YHN;";
+
+        static string MySQL_server = $"{ConfigurationManager.AppSettings["MySQL_server"]}";
+        static string MySQL_database = $"{ConfigurationManager.AppSettings["MySQL_database"]}";
+        static string MySQL_userid = $"{ConfigurationManager.AppSettings["MySQL_user"]}";
+        static string MySQL_password = $"{ConfigurationManager.AppSettings["MySQL_password"]}";
+        static string MySQL_port = $"{ConfigurationManager.AppSettings["MySQL_port"]}";
+
+        private SQLControl sQLControl_醫囑資料 = new SQLControl(MySQL_server, MySQL_database, "order_list", MySQL_userid, MySQL_password, (uint)MySQL_port.StringToInt32(), MySql.Data.MySqlClient.MySqlSslMode.None);
+        private string API_Server = "http://192.168.23.54:4433";
+
         private readonly HospitalApiService _hospitalApi;
 
         public SmallDrugController(HospitalApiService hospitalApi)
@@ -58,10 +71,12 @@ namespace DBVM
             }
 
             //===============================
-            // 3. 無資料處理
+            // 3. 資料處理
             //===============================
+            
             try
             {
+                List<OrderClass> orderClasses = new List<OrderClass>();
                 OrderClass orderClass = new OrderClass();
                 var data = response.Data;
 
@@ -105,34 +120,34 @@ namespace DBVM
                 //double sumQTY = SafeDouble(reader, "PAC_SUMQTY");
                 //orderClass.交易量 = (-sumQTY).ToString();
 
-                ////====== PRI_KEY ======
+                ////====== PRI_KEY ======                
+                orderClass.PRI_KEY = data.ID;
                 //string key = $"{orderClass.頻次}{orderClass.天數}{orderClass.單次劑量}{orderClass.劑量單位}";
                 //orderClass.PRI_KEY = $"{時間}-{orderClass.病歷號}-{orderClass.藥品碼}{orderClass.交易量}-{key}";
-                orderClass.PRI_KEY = data.ID;
 
-                //orderClasses.Add(orderClass);
+                orderClasses.Add(orderClass);
+
+
+                //===============================
+                // 5. 寫入資料庫
+                //===============================            
+                MyTimerBasic t_db = new MyTimerBasic();
+                var returnData_order = OrderClass.update_order_list_new("http://127.0.0.1:4433", orderClasses);
+                DB寫入時間 = t_db.ToString();
+
+                returnData_order.Value = data.UDBC;   // 回傳院方藥袋條碼
+                returnData_order.TimeTaken += $"{timerTotal}";
+                returnData_order.Result += $"，HIS連線時間:{HIS連線時間}，取得HIS資料:{HISData時間}，DB寫入時間:{DB寫入時間}";
+
+                string json = returnData_order.JsonSerializationt(true);
+                Logger.Log(json);
+                return Ok(returnData_order);
+
             }
             catch (Exception ex)
             {
                 return Content($"HIS系統資料解析異常 (Row)：{ex.Message}", "text/plain; charset=utf-8");
             }
-
-
-            //===============================
-            // 5. 寫入資料庫
-            //===============================            //MyTimerBasic t_db = new MyTimerBasic();
-            //var returnData_order = OrderClass.update_order_list_new("http://127.0.0.1:4433", orderClasses);
-            //DB寫入時間 = t_db.ToString();
-
-            //returnData_order.Value = BarCode;
-            //returnData_order.TimeTaken += $"{myTimer_total}";
-            //returnData_order.Result += $"，HIS連線時間:{HIS連線時間}，取得HIS資料:{HISData時間}，DB寫入時間:{DB寫入時間}";
-
-            //string json = returnData_order.JsonSerializationt(true);
-            //Logger.Log(json);
-            //conn_oracle.Close();
-            //return json;
-            return Ok(response.Data);
 
         }
     }
