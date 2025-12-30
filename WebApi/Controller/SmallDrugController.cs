@@ -4,6 +4,7 @@ using DBVM_API.Models;
 using DBVM_API.Services;
 using HIS_DB_Lib;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Oracle.ManagedDataAccess.Client;
 using SQLUI;
 using System;
@@ -22,8 +23,6 @@ namespace DBVM
     [ApiController]
     public class SmallDrugController : Controller
     {
-        private static readonly string conn_str = "Data Source=192.168.120.123:1521/sisdcp;User ID=hson_kutech;Password=3edc#$56^YHN;";
-
         static string MySQL_server = $"{ConfigurationManager.AppSettings["MySQL_server"]}";
         static string MySQL_database = $"{ConfigurationManager.AppSettings["MySQL_database"]}";
         static string MySQL_userid = $"{ConfigurationManager.AppSettings["MySQL_user"]}";
@@ -31,7 +30,7 @@ namespace DBVM
         static string MySQL_port = $"{ConfigurationManager.AppSettings["MySQL_port"]}";
 
         private SQLControl sQLControl_醫囑資料 = new SQLControl(MySQL_server, MySQL_database, "order_list", MySQL_userid, MySQL_password, (uint)MySQL_port.StringToInt32(), MySql.Data.MySqlClient.MySqlSslMode.None);
-        private string API_Server = "http://192.168.23.54:4433";
+        private string API_Server = "https://localhost:44318";
 
         private readonly HospitalApiService _hospitalApi;
 
@@ -44,17 +43,54 @@ namespace DBVM
         public async Task<IActionResult> GetOrder([FromBody] BarCodeRequest request)
         {
             MyTimerBasic timerTotal = new MyTimerBasic();
-            string HIS連線時間 = "";
+            string HIS呼叫時間 = "";
             string HISData時間 = "";
             string DB寫入時間 = "";
-
 
             //===============================
             // 1. 呼叫 HIS API
             //===============================
             MyTimerBasic t1 = new MyTimerBasic();
+            HIS呼叫時間 = t1.ToString();
+
             var response = await _hospitalApi.GetSmallDrugByBarcode(request);
-            HIS連線時間 = t1.ToString();
+
+            string test = @"
+                    {
+                        ""ID"": ""05C812B2-C7FC-4A4C-B5AD-21E811A653DE"",
+                        ""UDOINSTRUCTION"": null,
+                        ""UDDDGNPRODUCT"": ""Neomycin oint 0.5% 28Gm"",
+                        ""HNURSTA"": ""ED1"",
+                        ""HNAMEC"": ""<病人姓名>"",
+                        ""HHISNUM"": ""<病歷號>"",
+                        ""ORDSEQ"": ""<醫囑序號>"",
+                        ""ENCNTNO"": ""<就診號>"",
+                        ""CREATETIME"": ""2024-08-01 04:18:52.0"",
+                        ""DISPNO"": ""ER-1141"",
+                        ""READTIME"": null,
+                        ""SIDEEFFECT"": ""局部刺激。"",
+                        ""INDICATION"": ""抗生素(消炎)藥膏"",
+                        ""UDQNTY2"": ""-7 TUB"",
+                        ""UDQNTY"": ""-7"",
+                        ""UDDRGNO"": ""AN150"",
+                        ""BEDNO"": ""<位置>"",
+                        ""UDDOSAGE"": ""0 TUB"",
+                        ""UDDDGNMATERIAL"": ""NEOMYCIN OINT"",
+                        ""UDMDPNAM"": ""Neomycin oint 0.5% 28Gm"",
+                        ""UDROUTE"": ""TOP"",
+                        ""UDFREQN"": ""BID"",
+                        ""UDDMDPNAME"": ""Neomycin oint 0.5% 28Gm"",
+                        ""UDDURAT"": ""7"",
+                        ""ORDDTTM"": ""2024-08-01 03:38:35.0"",
+                        ""SECT"": ""CV"",
+                        ""HBIRTHDT"": ""19910101"",
+                        ""INDATE"": ""20250501"",
+                        ""DIAGNOSIS"": ""xxx""
+                    }";
+            response.Data = JsonConvert.DeserializeObject<SmallDrugResponse>(test);
+
+            MyTimerBasic t2 = new MyTimerBasic();
+            HIS呼叫時間 = t2.ToString();
 
             //===============================
             // 2. 無資料處理
@@ -84,60 +120,70 @@ namespace DBVM
                 orderClass.藥袋類型 = enum_藥袋類別.小藥袋.GetDescription();
 
                 //====== 基本欄位 ======
+                orderClass.產出時間 = data.CREATETIME;
                 orderClass.藥袋條碼 = data.UDBC;
                 orderClass.住院序號 = data.ORDSEQ;
+                orderClass.就醫序號 = data.ENCNTNO;
                 orderClass.藥品碼 = data.UDDDRGCODE;
                 orderClass.藥品名稱 = data.UDDDGNMATERIAL;
                 orderClass.病人姓名 = data.HNAMEC;
                 orderClass.病歷號 = data.HHISTNUM;
                 orderClass.領藥號 = data.DISPNO;
                 orderClass.科別 = data.SECT;
-                //orderClass.醫師代碼 = data.
-                //orderClass.頻次 = 
-                //orderClass.天數 = 
                 orderClass.單次劑量 = data.UDOGIVDOSE;
                 orderClass.劑量單位 = data.UDDDSPUNIT;
-                //orderClass.費用別 = 
-                //orderClass.批序 = 
                 orderClass.途徑 = data.UDDROUTE;
                 orderClass.床號 = data.HBEDNO;
 
-                //====== 就醫時間 ======
-                //string visit = SafeGet(reader, "PAC_VISITDT");
-                //if (visit.Length == 8)
-                //    orderClass.就醫時間 = $"{visit[..4]}-{visit[4..6]}-{visit[6..8]}";
 
-                //====== 開方日期 ======
-                //string 時間 = SafeGet(reader, "PAC_PROCDTTM");
-                //if (時間.Length == 14)
-                //{
-                //    orderClass.開方日期 =
-                //        $"{時間[..4]}/{時間[4..6]}/{時間[6..8]} " +
-                //        $"{時間[8..10]}:{時間[10..12]}:{時間[12..14]}";
-                //}
+                // ===== 無對應（僅註解保留） =====
+                // data.READTIME          // 讀取時間 → OrderClass 無對應屬性
+                // data.QUANTITY          // 數量 → OrderClass 無對應屬性
+                // data.PRINTER          // 印表機號 → OrderClass 無對應屬性
+                // data.UDOGIVUNIT        // 單位 → OrderClass 無明確對應（非劑量單位）
+                // data.UDOFUNCT          // 醫囑類別 → OrderClass 無對應屬性
+                // data.UDDDGNPRODUCT     // 藥品商品名 → OrderClass 無對應屬性
+                // data.HBIRTHDT          // 生日 → OrderClass 無對應屬性
+                // data.HNURSTAT          // 護理站 → OrderClass 無對應屬性
+                // data.INDATE            // 住院日 → OrderClass 無對應屬性
+                // data.DIAGNOSIS         // 主診斷 → OrderClass 無對應屬性
+                // data.SIDEEFFECT        // 過敏史 → OrderClass 無對應屬性
+                // data.INDICATION        // 適應症 → OrderClass 無對應屬性
 
-                //====== 交易量（負值） ======
-                //double sumQTY = SafeDouble(reader, "PAC_SUMQTY");
-                //orderClass.交易量 = (-sumQTY).ToString();
+                // ===== OrderClass 但 JSON 未提供 =====
+                // orderClass.EXT_TIME     // JSON 無 EXT_TIME 欄位
+                // orderClass.交易量        // JSON 無交易量欄位
+                // orderClass.實際調劑量     // JSON 無實際調劑量欄位
+                // orderClass.病房          // JSON 無病房欄位
+                // orderClass.醫師代碼      // JSON 無醫師代碼欄位
+                // orderClass.頻次          // JSON 無頻次欄位
+                // orderClass.天數          // JSON 無天數欄位
+                // orderClass.費用別        // JSON 無費用別欄位
+                // orderClass.批序          // JSON 無批序欄位
+                // orderClass.開方日期      // JSON 無開方日期
+                // orderClass.結方日期      // JSON 無結方日期
+                // orderClass.核對時間      // JSON 無核對時間
+                // orderClass.發藥時間      // JSON 無發藥時間
+                // orderClass.領藥時間      // JSON 無領藥時間
+                // orderClass.備註          // JSON 無備註欄位
 
                 ////====== PRI_KEY ======                
                 orderClass.PRI_KEY = data.ID;
-                //string key = $"{orderClass.頻次}{orderClass.天數}{orderClass.單次劑量}{orderClass.劑量單位}";
-                //orderClass.PRI_KEY = $"{時間}-{orderClass.病歷號}-{orderClass.藥品碼}{orderClass.交易量}-{key}";
 
                 orderClasses.Add(orderClass);
 
 
                 //===============================
-                // 5. 寫入資料庫
+                // 4. 寫入資料庫
                 //===============================            
                 MyTimerBasic t_db = new MyTimerBasic();
-                var returnData_order = OrderClass.update_order_list_new("http://127.0.0.1:4433", orderClasses);
+                var returnData_order = OrderClass.update_order_list_new(API_Server, orderClasses);
+                //var returnData_order = OrderClass.update_order_list(API_Server, orderClasses);
                 DB寫入時間 = t_db.ToString();
 
                 returnData_order.Value = data.UDBC;   // 回傳院方藥袋條碼
                 returnData_order.TimeTaken += $"{timerTotal}";
-                returnData_order.Result += $"，HIS連線時間:{HIS連線時間}，取得HIS資料:{HISData時間}，DB寫入時間:{DB寫入時間}";
+                returnData_order.Result += $"，HIS呼叫時間:{HIS呼叫時間}，取得HIS資料:{HISData時間}，DB寫入時間:{DB寫入時間}";
 
                 string json = returnData_order.JsonSerializationt(true);
                 Logger.Log(json);

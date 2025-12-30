@@ -73,5 +73,25 @@ namespace DBVM_API
 
             return attribute?.Name ?? value.ToString();
         }
+
+        public static bool TryToEnumFromDescription<TEnum>(this string description, out TEnum result) where TEnum : Enum
+        {
+            result = default;
+
+            if (string.IsNullOrWhiteSpace(description))
+                return false;
+
+            foreach (var field in typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static))
+            {
+                var attr = field.GetCustomAttribute<DescriptionAttribute>();
+                if (attr != null && attr.Description == description)
+                {
+                    result = (TEnum)field.GetValue(null);
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
