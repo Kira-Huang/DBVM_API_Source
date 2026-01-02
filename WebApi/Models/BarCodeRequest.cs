@@ -28,7 +28,7 @@ namespace DBVM_API.Models
         /// <summary>
         /// 藥局位置 PHR = 中央藥局 /PHRO = 門診藥局 / PHRE = 急診藥局 / PHR6 = 二醫藥局 /PHRN = 北院區藥局
         /// </summary>
-        [JsonProperty("location")]
+        [JsonProperty("location", NullValueHandling = NullValueHandling.Ignore)]
         public string Location { get; set; }
     }
 }
