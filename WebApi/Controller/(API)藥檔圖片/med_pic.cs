@@ -1,13 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Basic;
+using HIS_DB_Lib;
+using Microsoft.AspNetCore.Mvc;
+using MySql.Data.MySqlClient;
+using SQLUI;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Policy;
 using System.Threading.Tasks;
-using Basic;
-using HIS_DB_Lib;
-using System.Collections.Concurrent;
-using SQLUI;
-using MySql.Data.MySqlClient;
+using Ubiety.Dns.Core.Common;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -34,16 +40,16 @@ namespace DB2VM_API.Controller._API_藥檔圖片
 
                 Parallel.ForEach(medClasses, new ParallelOptions { MaxDegreeOfParallelism = 4 }, medClass =>
                 {
-                    string code = medClass.料號;
                     string 藥碼 = medClass.藥品碼;
-                    medPictureClass medPictureClass = medPictureClass.get_pic(code);
+                    string 藥名 = medClass.藥品名稱;
+                    medPictureClass medPictureClass = medPictureClass.get_pic(藥碼);
                     if (medPictureClass != null && medPictureClass.pic_base64.StringIsEmpty() == false)
                     {
                         medPicClass medPicClass = new medPicClass
                         {
                             藥碼 = 藥碼,
-                            藥名 = medPictureClass.藥名,
-                            副檔名 = "png",
+                            藥名 = 藥名,
+                            副檔名 = "jpg",
                             pic_base64 = medPictureClass.pic_base64,
                         };
                         localList.Add(medPicClass);
@@ -72,6 +78,26 @@ namespace DB2VM_API.Controller._API_藥檔圖片
                 returnData.Result = ex.Message;
                 return returnData.JsonSerializationt(true);
             }
-        }       
+        }
+
+        [HttpGet("test")]
+        public async Task<IActionResult> test([FromQuery] string code)
+        {            
+            medPictureClass medPictureClass = medPictureClass.get_pic(code);
+
+            //string url = $"https://www3.vghtc.gov.tw:8443/pharmacyHandbook/API/getImage.jsp?path=pic&code={code}";
+
+            //ServicePointManager.ServerCertificateValidationCallback = (object _003Cp0_003E, X509Certificate _003Cp1_003E, X509Chain _003Cp2_003E, SslPolicyErrors _003Cp3_003E) => true;
+            //HttpClient client = new HttpClient();
+            //HttpResponseMessage response = await client.GetAsync(url);
+            //response.EnsureSuccessStatusCode();
+            //byte[] jpegBytes = await response.Content.ReadAsByteArrayAsync();
+            //string base64 = Convert.ToBase64String(jpegBytes);
+            //byte[] imageBytes = Convert.FromBase64String(base64);
+
+            byte[] imageBytes = Convert.FromBase64String(medPictureClass.pic_base64);
+
+            return File(imageBytes, "image/jpeg");
+        }
     }
 }

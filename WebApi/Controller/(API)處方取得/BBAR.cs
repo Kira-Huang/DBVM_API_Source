@@ -30,8 +30,13 @@ namespace DB2VM
             _hospitalApi = hospitalApi;
         }
 
-        [HttpPost("")]
-        public async Task<IActionResult> GetOrder([FromBody] BarCodeRequest request)
+        /// <summary>
+        /// 藥袋刷條碼
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpGet("")]
+        public async Task<IActionResult> GetOrder([FromQuery] string barcode)
         {
             MyTimerBasic timerTotal = new MyTimerBasic();
             string HIS呼叫時間 = "";
@@ -49,12 +54,16 @@ namespace DB2VM
 
             // 管制櫃各類型的藥袋都刷刷看  有資料就開藥盒
             // 小藥袋
+            BarCodeRequest request = new BarCodeRequest()
+            {
+                BarCode = barcode
+            };
             var smallTask = _hospitalApi.GetSmallDrugByBarcode(request);
 
             // 日間帶藥
             BardCodeTakeDrugRequest dayRequest = new BardCodeTakeDrugRequest()
             {
-                BarCode = request.BarCode,
+                BarCode = barcode,
                 Category = enum_藥袋類別.日間帶藥.GetDescription()
             };
             var dayTask = _hospitalApi.GetTakeDrugByBarCode(dayRequest);
@@ -62,7 +71,7 @@ namespace DB2VM
             // 出院帶藥
             BardCodeTakeDrugRequest dischargeRequest = new BardCodeTakeDrugRequest()
             {
-                BarCode = request.BarCode,
+                BarCode = barcode,
                 Category = enum_藥袋類別.出院帶藥.GetDescription()
             };
             var dischargeTask = _hospitalApi.GetTakeDrugByBarCode(dischargeRequest);
