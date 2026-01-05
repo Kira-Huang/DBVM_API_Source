@@ -27,73 +27,78 @@ namespace DB2VM_API.Controller
 
 
         [HttpGet]
-        public string Get(string? Code)
+        public string Get(string? stockcode)
         {
+            MyTimerBasic myTimerBasic = new MyTimerBasic();
+            returnData returnData = new returnData();
             try
             {
-                string conn_str = "Data Source=192.168.120.123:1521/sisdcp;User ID=hson_kutech;Password=3edc#$56^YHN;";
-                OracleConnection conn_oracle = new OracleConnection(conn_str);
-                conn_oracle.Open();
-                string commandText = "";
-                if (Code.StringIsEmpty()) commandText = $"select * from v_hisdrugdia";
-                else commandText = $"select * from v_hisdrugdia where DIA_DIACODE='{Code}'";
-                OracleCommand cmd = new OracleCommand(commandText, conn_oracle);
-                List<object[]> list_v_hisdrugdia = new List<object[]>();
-                var reader = cmd.ExecuteReader();
-                List<string> columnNames = new List<string>();
-                //for (int i = 0; i < reader.FieldCount; i++)
-                //{
-                //    string columnName = reader.GetName(i);
-                //    columnNames.Add(columnName);
-                //}
-
-                List<medClass> medClasses_his = new List<medClass>();
-                while (reader.Read())
+                List<medicineClass> medicineClasses = medicineClass.get_med(stockcode);
+                List<medClass> medClasses = new List<medClass>();
+                foreach (var medicineClass in medicineClasses)
                 {
-                    object[] value = new object[new enum_雲端藥檔().GetLength()];
-
-                    medClass medClass = new medClass();
-
-                    medClass.藥品碼 = reader["DIA_DIACODE"].ToString().Trim();
-                    medClass.料號 = reader["DIA_SKDIACODE"].ToString().Trim();
-                    medClass.中文名稱 = ConvertToBig5(reader["DIA_CNAME"].ToString().Trim());
-                    medClass.藥品名稱 = reader["DIA_EGNAME"].ToString().Trim();
-                    medClass.藥品學名 = reader["DIA_CHNAME"].ToString().Trim();
-                    medClass.健保碼 = reader["DIA_INSCODE"].ToString().Trim();
-                    medClass.包裝單位 = reader["DIA_ATTACHUNIT"].ToString().Trim();
-                    medClass.最小包裝單位 = reader["DIA_UNIT"].ToString().Trim();
-                    medClass.警訊藥品 = (reader["MED_HWARNING"].ToString().Trim() == "Y") ? "True" : "False";
-                    medClass.管制級別 = reader["DIA_RESTRIC"].ToString().Trim();
-                    medClass.類別 = reader["DIA_DRUGKINDNAME"].ToString().Trim();
-                    medClass.ATC = reader["DIA_ATCCODE"].ToString().Trim();
-                    medClass.懷孕用藥級別 = reader["MED_PREGNANCY"].ToString().Trim();
-                    if (medClass.類別 == "中醫飲片" || medClass.類別 == "中藥" || medClass.類別 == "中藥錠劑" || medClass.類別 == "外用中藥")
+                    medClass medClass = new medClass
                     {
-                        medClass.中西藥 = "中藥";
-                    }
-                    else
-                    {
-                        medClass.中西藥 = "西藥";
-                    }
-
-                    medClasses_his.Add(medClass);
+                        藥品碼 = medicineClass.藥品碼,
+                        藥品名稱 = medicineClass.藥品名稱,
+                        藥品學名 = medicineClass.藥品學名,
+                        中文名稱 = medicineClass.中文名稱,
+                        最小包裝單位 = medicineClass.最小包裝單位,
+                        包裝單位 = medicineClass.最小包裝單位,
+                        警訊藥品 = medicineClass.警訊藥品.ToString(),
+                        管制級別 = medicineClass.管制級別.ToString(),
+                        開檔狀態 = medicineClass.開檔狀態,
+                        料號 = medicineClass.料號.Trim(),
+                        ATC = medicineClass.healthInsurance.ATC,
+                        中西藥 = "西藥"
+                    };
+                    if (medClass.管制級別 == "0") medClass.管制級別 = "N";
+                    if (medClass.開檔狀態 == "N") medClass.開檔狀態 = "停用中";
+                    if (medClass.開檔狀態 == "Y") medClass.開檔狀態 = "開檔中";
+                    if (medClass.料號.StringIsEmpty() == false && medClass.藥品碼.StringIsEmpty() == false) medClasses.Add(medClass);
 
                 }
-                cmd.Dispose();
-                conn_oracle.Close();
-                conn_oracle.Dispose();
-                returnData returnData_medCloud = medClass.add_med_clouds(API_Server, medClasses_his);
+                Dictionary<string, List<medClass>> medDict = medClass.CoverToDictionaryByCode(medClasses);
+                List<medClass> temp_medClass = new List<medClass>();
+                foreach (string key in medDict.Keys)
+                {
+                    List<medClass> med = medDict[key];
+                    if (med.Count > 1)
+                    {
+                        List<medClass> buff_medClass = med.Where(temp => temp.開檔狀態 == "開檔中").ToList();
+                        if (buff_medClass.Count == 0)
+                        {
+                            temp_medClass.Add(med[0]);
+                        }
+                        else
+                        {
+                            temp_medClass.Add(buff_medClass[0]);
+                        }
 
-                return returnData_medCloud.JsonSerializationt(true);
+                    }
+                    else if (med.Count == 1)
+                    {
+                        temp_medClass.Add(med[0]);
+                    }
+
+                }
+                medClass.add_med_clouds(API_Server, temp_medClass);
+
+
+                returnData.Code = 200;
+                returnData.Result = $"取得藥品資料共{medClasses.Count}筆";
+                returnData.TimeTaken = $"{myTimerBasic}";
+                returnData.Data = medClasses;
+                return returnData.JsonSerializationt(true);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return ex.Message;
+                returnData.Code = -200;
+                returnData.Result = ex.Message;
+                return returnData.JsonSerializationt(true);
             }
-            
-          
-
         }
+
         public static string ConvertToBig5(string input)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

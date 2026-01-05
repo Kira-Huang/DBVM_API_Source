@@ -8,27 +8,14 @@ namespace ConsoleApp_medPageCloud
     {
         static void Main(string[] args)
         {
-            string connString =
-            "User Id=hson_kutech;" +
-            "Password=\"3edc#$56^YHN\";" +
-            "Data Source=192.168.120.123:1521/sisdcp;" +   // 這裡用小寫 sisdcp
-            "Connection Timeout=60;";
-
-            try
-            {
-                Console.WriteLine("測試連線");
-
-                using (var conn = new OracleConnection(connString))
-                {
-                    conn.Open();
-                }
-                Console.WriteLine($"Oracle Connecting success! , {connString}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Oracle Connecting failed! , {ex.GetType().Name} : {ex.Message}");
-            }
-
+            Console.WriteLine("藥檔更新開始");
+            string url = "http://192.168.19.200:443/api/BBCM";
+            string json = Basic.Net.WEBApiGet(url);
+            Console.WriteLine("藥檔更新結束");
+            Console.WriteLine("藥品圖片更新開始");
+            url = "http://192.168.19.200:443/api/med_pic";
+            json = Basic.Net.WEBApiGet(url);
+            Console.WriteLine("藥品圖片更新結束");
         }
     }
 }
