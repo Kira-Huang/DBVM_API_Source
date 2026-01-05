@@ -36,7 +36,7 @@ namespace DB2VM
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpGet("")]
-        public async Task<IActionResult> GetOrder([FromQuery] string barcode)
+        public IActionResult GetOrder([FromQuery] string barcode)
         {
             MyTimerBasic timerTotal = new MyTimerBasic();
             string HIS呼叫時間 = "";
@@ -77,7 +77,8 @@ namespace DB2VM
             var dischargeTask = _hospitalApi.GetTakeDrugByBarCode(dischargeRequest);
 
             // 等待所有任務完成
-            await Task.WhenAll(smallTask, dayTask, dischargeTask);
+            // await Task.WhenAll(smallTask, dayTask, dischargeTask);
+            Task.WaitAll(smallTask, dayTask, dischargeTask);
 
             // 取得結果
             var smallResult = smallTask.Result;
