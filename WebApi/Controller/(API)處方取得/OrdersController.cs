@@ -4,7 +4,9 @@ using DBVM_API.Models;
 using DBVM_API.Services;
 using HIS_DB_Lib;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DBVM
@@ -29,7 +31,7 @@ namespace DBVM
         /// <param name="complete">Y = 取得已讀取 / N = 取得未讀取 / 不傳 = 取得全部</param>
         /// <returns></returns>
         [HttpGet("")]
-        public IActionResult GetOrders(string startDate, string endDate, string complete = null)
+        public async Task<IActionResult> GetOrders([FromQuery]string startDate, string endDate, string complete = null)
         {
             MyTimerBasic timerTotal = new MyTimerBasic();
             string HIS呼叫時間 = "";
@@ -73,12 +75,18 @@ namespace DBVM
             var dischargeTask = _hospitalApi.GetTakeDrug(dischargeRequest);
 
             // 等待所有任務完成
-            Task.WaitAll(smallTask, dayTask, dischargeTask);
+            await Task.WhenAll(smallTask, dayTask, dischargeTask);
 
             // 取得結果
             var smallResult = smallTask.Result;
             var dayResult = dayTask.Result;
             var dischargeResult = dischargeTask.Result;
+
+            // Test 
+            //string test = TestTakeDrugResponse();
+            //dayResult.Success = true;
+            //dayResult.Data = JsonConvert.DeserializeObject<List<TakeDrugResponse>>(test);
+
 
             //===============================
             // 2. 無資料處理（全部沒資料）
@@ -117,6 +125,7 @@ namespace DBVM
                         orderClass.藥袋類型 = enum_藥袋類別.小藥袋.GetDescription();
 
                         //====== 基本欄位 ======
+                        orderClass.批序 = data.ORDSEQ;
                         orderClass.產出時間 = data.CREATETIME;
                         orderClass.藥袋條碼 = data.UDBC;
                         orderClass.住院序號 = data.ORDSEQ;
@@ -187,6 +196,7 @@ namespace DBVM
 
                         //====== 基本欄位 ======
                         // orderClass.藥袋條碼 = request.BarCode;
+                        orderClass.批序 = data.ORDSEQ;
                         orderClass.產出時間 = data.CREATETIME;
                         orderClass.住院序號 = data.ORDSEQ;
                         orderClass.就醫序號 = data.ENCNTNO;
@@ -199,6 +209,7 @@ namespace DBVM
                         orderClass.頻次 = data.UDFREQN;
                         orderClass.途徑 = data.UDROUTE;
                         orderClass.床號 = data.BEDNO;
+                        orderClass.交易量 = data.UDDURAT;
 
                         ////====== PRI_KEY ======                
                         orderClass.PRI_KEY = data.ID;
@@ -253,6 +264,7 @@ namespace DBVM
 
                         //====== 基本欄位 ======
                         // orderClass.藥袋條碼 = request.BarCode;
+                        orderClass.批序 = data.ORDSEQ;
                         orderClass.產出時間 = data.CREATETIME;
                         orderClass.住院序號 = data.ORDSEQ;
                         orderClass.就醫序號 = data.ENCNTNO;
@@ -265,6 +277,7 @@ namespace DBVM
                         orderClass.頻次 = data.UDFREQN;
                         orderClass.途徑 = data.UDROUTE;
                         orderClass.床號 = data.BEDNO;
+                        orderClass.交易量 = data.UDDURAT;
 
                         ////====== PRI_KEY ======                
                         orderClass.PRI_KEY = data.ID;
@@ -312,7 +325,17 @@ namespace DBVM
                 MyTimerBasic t_db = new MyTimerBasic();
                 returnData returnData_order = new returnData();
                 if (orderClasses != null && orderClasses.Count > 0)
-                    returnData_order = OrderClass.update_order_list(API_Server, orderClasses);
+                {
+                    var groups = orderClasses.GroupBy(o => o.批序);
+
+                    foreach (var batch in groups)
+                    {
+                        string 批序 = batch.Key;
+                        List<OrderClass> batchOrders = batch.ToList();
+
+                        returnData_order = OrderClass.update_order_list(API_Server, batchOrders);
+                    }
+                }
                 else
                 {
                     // 沒有產出 orderClasses
@@ -339,6 +362,137 @@ namespace DBVM
             {
                 return Content($"HIS系統資料解析異常 (Row)：{ex.Message}", "text/plain; charset=utf-8");
             }
+        }
+
+        public string TestTakeDrugResponse()
+        {
+            string result = @"[
+                                {
+                                    ""ID"": ""1082F96A-78EB-48A1-8E31-A0FC269436C4"",
+                                    ""UDDDGNMATERIAL"": ""Famotidine f.c. tab 20mg"",
+                                    ""SIDEEFFECT"": ""頭痛、頭暈、腹瀉或便秘等。"",
+                                    ""READTIME"": null,
+                                    ""CREATETIME"": ""2024-09-09 11:59:51.0"",
+                                    ""INDICATION"": ""治療消化性潰瘍、逆流性食道炎"",
+                                    ""ENCNTNO"": ""<就診號>"",
+                                    ""DISPNO"": ""B1-8188"",
+                                    ""UDDMDPNAME"": ""Ulstop f.c. tab 20mg"",
+                                    ""UDOINSTRUCTION"": null,
+                                    ""HNAMEC"": ""<病人姓名>"",
+                                    ""HHISNUM"": ""<病歷號>"",
+                                    ""HNURSTA"": ""W72"",
+                                    ""ORDSEQ"": ""123"",
+                                    ""UDDDGNPRODUCT"": ""Ulstop f.c. tab 20mg"",
+                                    ""ORDDTTM"": ""2024-09-09 11:57:20.0"",
+                                    ""UDDRGNO"": ""ULS01"",
+                                    ""UDQNTY"": ""8"",
+                                    ""UDQNTY2"": ""8 TAB"",
+                                    ""UDROUTE"": ""PO"",
+                                    ""UDDOSAGE"": ""1 TAB"",
+                                    ""BEDNO"": ""W72 111"",
+                                    ""UDMDPNAM"": ""Ulstop f.c. tab 20mg"",
+                                    ""UDFREQN"": ""BID"",
+                                    ""UDDURAT"": ""4"",
+                                    ""HBIRTHDT"": ""19910101"",
+                                    ""DIAGNOSIS"": ""xxx""
+                                },
+                                {
+                                    ""ID"": ""4CBE2DBC-0640-4F83-A818-F407EC14F9EF"",
+                                    ""UDDDGNMATERIAL"": ""Gabapentin cap 100mg"",
+                                    ""SIDEEFFECT"": ""嗜睡、眩暈、運動失調、疲倦、發燒、感染、視力模糊、眼震顫、噁心嘔吐"",
+                                    ""READTIME"": null,
+                                    ""CREATETIME"": ""2024-09-09 11:59:51.0"",
+                                    ""INDICATION"": ""癲癇輔助治療，治療帶狀庖疹後神經痛"",
+                                    ""ENCNTNO"": ""<就診號>"",
+                                    ""DISPNO"": ""B1-8188"",
+                                    ""UDDMDPNAME"": ""100mg Neurontin cap"",
+                                    ""UDOINSTRUCTION"": null,
+                                    ""HNAMEC"": ""<病人姓名>"",
+                                    ""HHISNUM"": ""<病歷號>"",
+                                    ""HNURSTA"": ""W72"",
+                                    ""ORDSEQ"": ""456"",
+                                    ""UDDDGNPRODUCT"": ""100mg Neurontin cap"",
+                                    ""ORDDTTM"": ""2024-09-09 11:57:20.0"",
+                                    ""UDDRGNO"": ""AG230"",
+                                    ""UDQNTY"": ""8"",
+                                    ""UDQNTY2"": ""8 CAP"",
+                                    ""UDROUTE"": ""PO"",
+                                    ""UDDOSAGE"": ""1 CAP"",
+                                    ""BEDNO"": ""W72 111"",
+                                    ""UDMDPNAM"": ""100mg Neurontin cap"",
+                                    ""UDFREQN"": ""Q12H"",
+                                    ""UDDURAT"": ""4"",
+                                    ""HBIRTHDT"": ""19910101"",
+                                    ""DIAGNOSIS"": ""xxx""
+                                },
+                                {
+                                    ""ID"": ""BF526969-1FAC-47BC-A016-90540FD21799"",
+                                    ""UDDDGNMATERIAL"": ""METFORMIN TAB"",
+                                    ""SIDEEFFECT"": ""脹氣、頭痛、腹痛、腹瀉、噁心"",
+                                    ""READTIME"": null,
+                                    ""CREATETIME"": ""2024-09-09 11:59:51.0"",
+                                    ""INDICATION"": ""降血糖藥"",
+                                    ""ENCNTNO"": ""<就診號>"",
+                                    ""DISPNO"": ""B1-8188"",
+                                    ""UDDMDPNAME"": ""Glucophage tab 500mg"",
+                                    ""UDOINSTRUCTION"": null,
+                                    ""HNAMEC"": ""<病人姓名>"",
+                                    ""HHISNUM"": ""<病歷號>"",
+                                    ""HNURSTA"": ""W72"",
+                                    ""ORDSEQ"": ""789"",
+                                    ""UDDDGNPRODUCT"": ""Glucophage tab 500mg"",
+                                    ""ORDDTTM"": ""2024-09-09 11:57:20.0"",
+                                    ""UDDRGNO"": ""AG180"",
+                                    ""UDQNTY"": ""8"",
+                                    ""UDQNTY2"": ""8 TAB"",
+                                    ""UDROUTE"": ""PO"",
+                                    ""UDDOSAGE"": ""1 TAB"",
+                                    ""BEDNO"": ""W72 111"",
+                                    ""UDMDPNAM"": ""Glucophage tab 500mg"",
+                                    ""UDFREQN"": ""BID"",
+                                    ""UDDURAT"": ""4"",
+                                    ""HBIRTHDT"": ""19910101"",
+                                    ""DIAGNOSIS"": ""xxx""
+                                }
+                            ]";
+
+            return result;
+        }
+
+        public string TestSmallDrugResponse()
+        {
+            string result = @"[
+                                {
+                                    ""ID"": ""E326DE42-7504-4091-ABF0-12CA4FCED54F"",
+                                    ""CREATETIME"": ""2024-07-30T23:31:07.000+00:00"",
+                                    ""READTIME"": null,
+                                    ""QUANTITY"": ""1"",
+                                    ""DISPNO"": ""P2IO-057"",
+                                    ""UDOGIVUNIT"": ""ML"",
+                                    ""HNAMEC"": ""<病人姓名>"",
+                                    ""ORDSEQ"": ""<醫囑序號>"",
+                                    ""HNURSTA"": ""RICU"",
+                                    ""UDOGIVDOSE"": ""100"",
+                                    ""UDOGIVFREQN"": ""QD"",
+                                    ""ENCNTNO"": ""<就診號>"",
+                                    ""HHISTNUM"": ""<病歷號>"",
+                                    ""UDDDRGCODE"": ""POT01"",
+                                    ""UDDDGNPRODUCT"": ""1.49% KCL inj 100mL"",
+                                    ""UDDDSPUNIT"": ""BOT"",
+                                    ""SIDEEFFECT"": ""高血鉀症。"",
+                                    ""UDDROUTE"": ""IVD"",
+                                    ""INDICATION"": ""鉀離子補充劑"",
+                                    ""PRINTER"": ""P2IO"",
+                                    ""UDBC"": ""0410189700330573"",
+                                    ""UDOFUNCT"": ""ud"",
+                                    ""UDDDGNMATERIAL"": ""Pot. chloride inj 1.49% 100mL"",
+                                    ""SECT"": ""CV"",
+                                    ""HBIRTHDT"": ""19910101"",
+                                    ""INDATE"": ""20250501"",
+                                    ""DIAGNOSIS"": ""xxx""
+                                }
+                            ]";
+            return result;
         }
     }
 }

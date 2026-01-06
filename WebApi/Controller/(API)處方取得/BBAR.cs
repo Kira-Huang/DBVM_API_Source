@@ -6,6 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 using H_Pannel_lib;
 using HIS_DB_Lib;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Oracle.ManagedDataAccess.Client;
 using SQLUI;
 using System;
@@ -33,10 +34,10 @@ namespace DB2VM
         /// <summary>
         /// 藥袋刷條碼
         /// </summary>
-        /// <param name="request"></param>
+        /// <param name="barcode">barcode</param>
         /// <returns></returns>
         [HttpGet("")]
-        public IActionResult GetOrder([FromQuery] string barcode)
+        public async Task<IActionResult> GetOrder([FromQuery] string barcode)
         {
             MyTimerBasic timerTotal = new MyTimerBasic();
             string HIS呼叫時間 = "";
@@ -78,46 +79,17 @@ namespace DB2VM
 
             // 等待所有任務完成
             // await Task.WhenAll(smallTask, dayTask, dischargeTask);
-            Task.WaitAll(smallTask, dayTask, dischargeTask);
+            await Task.WhenAll(smallTask, dayTask, dischargeTask);
 
             // 取得結果
             var smallResult = smallTask.Result;
             var dayResult = dayTask.Result;
             var dischargeResult = dischargeTask.Result;
 
-            string test = @"
-                    {
-                        ""ID"": ""05C812B2-C7FC-4A4C-B5AD-21E811A653DE"",
-                        ""UDOINSTRUCTION"": null,
-                        ""UDDDGNPRODUCT"": ""Neomycin oint 0.5% 28Gm"",
-                        ""HNURSTA"": ""ED1"",
-                        ""HNAMEC"": ""<病人姓名>"",
-                        ""HHISNUM"": ""<病歷號>"",
-                        ""ORDSEQ"": ""<醫囑序號>"",
-                        ""ENCNTNO"": ""<就診號>"",
-                        ""CREATETIME"": ""2024-08-01 04:18:52.0"",
-                        ""DISPNO"": ""ER-1141"",
-                        ""READTIME"": null,
-                        ""SIDEEFFECT"": ""局部刺激。"",
-                        ""INDICATION"": ""抗生素(消炎)藥膏"",
-                        ""UDQNTY2"": ""-7 TUB"",
-                        ""UDQNTY"": ""-7"",
-                        ""UDDRGNO"": ""AN150"",
-                        ""BEDNO"": ""<位置>"",
-                        ""UDDOSAGE"": ""0 TUB"",
-                        ""UDDDGNMATERIAL"": ""NEOMYCIN OINT"",
-                        ""UDMDPNAM"": ""Neomycin oint 0.5% 28Gm"",
-                        ""UDROUTE"": ""TOP"",
-                        ""UDFREQN"": ""BID"",
-                        ""UDDMDPNAME"": ""Neomycin oint 0.5% 28Gm"",
-                        ""UDDURAT"": ""7"",
-                        ""ORDDTTM"": ""2024-08-01 03:38:35.0"",
-                        ""SECT"": ""CV"",
-                        ""HBIRTHDT"": ""19910101"",
-                        ""INDATE"": ""20250501"",
-                        ""DIAGNOSIS"": ""xxx""
-                    }";
-            //response.Data = JsonConvert.DeserializeObject<SmallDrugResponse>(test);
+            // Test
+            //string test = TestSmallDrugResponse();
+            //smallResult.Success = true;
+            //smallResult.Data = JsonConvert.DeserializeObject<SmallDrugResponse>(test);
 
             MyTimerBasic t2 = new MyTimerBasic();
             HIS呼叫時間 = t2.ToString();
@@ -403,6 +375,49 @@ namespace DB2VM
             {
                 return Content($"HIS系統資料解析異常 (Row)：{ex.Message}", "text/plain; charset=utf-8");
             }
+        }
+
+        /// <summary>
+        /// 測試字串
+        /// </summary>
+        /// <returns></returns>
+        public string TestSmallDrugResponse()
+        {
+            string test = @"
+                    {
+                        ""ID"": ""05C812B2-C7FC-4A4C-B5AD-21E811A653DE"",
+                        ""UDOINSTRUCTION"": null,
+                        ""UDDDGNPRODUCT"": ""Neomycin oint 0.5% 28Gm"",
+                        ""HNURSTA"": ""ED1"",
+                        ""HNAMEC"": ""<病人姓名>"",
+                        ""HHISNUM"": ""<病歷號>"",
+                        ""ORDSEQ"": ""Small123"",
+                        ""ENCNTNO"": ""<就診號>"",
+                        ""CREATETIME"": ""2024-08-01 04:18:52.0"",
+                        ""DISPNO"": ""ER-1141"",
+                        ""READTIME"": null,
+                        ""SIDEEFFECT"": ""局部刺激。"",
+                        ""INDICATION"": ""抗生素(消炎)藥膏"",
+                        ""UDQNTY2"": ""-7 TUB"",
+                        ""UDQNTY"": ""-7"",
+                        ""UDDRGNO"": ""AN150"",
+                        ""QUANTITY"": ""1"",
+                        ""BEDNO"": ""<位置>"",
+                        ""UDDOSAGE"": ""0 TUB"",
+                        ""UDDDGNMATERIAL"": ""NEOMYCIN OINT"",
+                        ""UDMDPNAM"": ""Neomycin oint 0.5% 28Gm"",
+                        ""UDROUTE"": ""TOP"",
+                        ""UDFREQN"": ""BID"",
+                        ""UDDMDPNAME"": ""Neomycin oint 0.5% 28Gm"",
+                        ""UDDURAT"": ""7"",
+                        ""ORDDTTM"": ""2024-08-01 03:38:35.0"",
+                        ""SECT"": ""CV"",
+                        ""HBIRTHDT"": ""19910101"",
+                        ""INDATE"": ""20250501"",
+                        ""DIAGNOSIS"": ""xxx""
+                    }";
+
+            return test;
         }
     }
 }
