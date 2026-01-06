@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DBVM
@@ -327,6 +328,7 @@ namespace DBVM
                 if (orderClasses != null && orderClasses.Count > 0)
                 {
                     var groups = orderClasses.GroupBy(o => o.批序);
+                    List<OrderClass> result = new List<OrderClass>();
 
                     foreach (var batch in groups)
                     {
@@ -334,7 +336,14 @@ namespace DBVM
                         List<OrderClass> batchOrders = batch.ToList();
 
                         returnData_order = OrderClass.update_order_list(API_Server, batchOrders);
+                        if (returnData_order.Data is System.Text.Json.JsonElement jsonElement)
+                        {
+                            var temp = jsonElement.Deserialize<List<OrderClass>>();
+                            result.AddRange(temp);
+                        }
                     }
+
+                    returnData_order.Data = result;
                 }
                 else
                 {
