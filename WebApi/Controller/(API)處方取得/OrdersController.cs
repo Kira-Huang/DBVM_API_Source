@@ -16,7 +16,8 @@ namespace DBVM
     [ApiController]
     public class OrdersController : Controller
     {
-        private string API_Server = "https://localhost:44318";
+        //private string API_Server = "https://localhost:44318";
+        private string API_Server = "https://127.0.0.1:4433";
 
         private readonly HospitalApiService _hospitalApi;
         public OrdersController(HospitalApiService hospitalApi)
@@ -83,7 +84,7 @@ namespace DBVM
             var dayResult = dayTask.Result;
             var dischargeResult = dischargeTask.Result;
 
-            // Test 
+            // Test
             //string test = TestTakeDrugResponse();
             //dayResult.Success = true;
             //dayResult.Data = JsonConvert.DeserializeObject<List<TakeDrugResponse>>(test);
@@ -383,12 +384,12 @@ namespace DBVM
                                     ""READTIME"": null,
                                     ""CREATETIME"": ""2024-09-09 11:59:51.0"",
                                     ""INDICATION"": ""治療消化性潰瘍、逆流性食道炎"",
-                                    ""ENCNTNO"": ""<就診號>"",
+                                    ""ENCNTNO"": ""A1234"",
                                     ""DISPNO"": ""B1-8188"",
                                     ""UDDMDPNAME"": ""Ulstop f.c. tab 20mg"",
                                     ""UDOINSTRUCTION"": null,
-                                    ""HNAMEC"": ""<病人姓名>"",
-                                    ""HHISNUM"": ""<病歷號>"",
+                                    ""HNAMEC"": ""王小明"",
+                                    ""HHISNUM"": ""1150107-1"",
                                     ""HNURSTA"": ""W72"",
                                     ""ORDSEQ"": ""123"",
                                     ""UDDDGNPRODUCT"": ""Ulstop f.c. tab 20mg"",
@@ -412,12 +413,12 @@ namespace DBVM
                                     ""READTIME"": null,
                                     ""CREATETIME"": ""2024-09-09 11:59:51.0"",
                                     ""INDICATION"": ""癲癇輔助治療，治療帶狀庖疹後神經痛"",
-                                    ""ENCNTNO"": ""<就診號>"",
+                                    ""ENCNTNO"": ""B1234"",
                                     ""DISPNO"": ""B1-8188"",
                                     ""UDDMDPNAME"": ""100mg Neurontin cap"",
                                     ""UDOINSTRUCTION"": null,
-                                    ""HNAMEC"": ""<病人姓名>"",
-                                    ""HHISNUM"": ""<病歷號>"",
+                                    ""HNAMEC"": ""張大偉"",
+                                    ""HHISNUM"": ""1150107-2"",
                                     ""HNURSTA"": ""W72"",
                                     ""ORDSEQ"": ""456"",
                                     ""UDDDGNPRODUCT"": ""100mg Neurontin cap"",
@@ -441,12 +442,12 @@ namespace DBVM
                                     ""READTIME"": null,
                                     ""CREATETIME"": ""2024-09-09 11:59:51.0"",
                                     ""INDICATION"": ""降血糖藥"",
-                                    ""ENCNTNO"": ""<就診號>"",
+                                    ""ENCNTNO"": ""C1234"",
                                     ""DISPNO"": ""B1-8188"",
                                     ""UDDMDPNAME"": ""Glucophage tab 500mg"",
                                     ""UDOINSTRUCTION"": null,
-                                    ""HNAMEC"": ""<病人姓名>"",
-                                    ""HHISNUM"": ""<病歷號>"",
+                                    ""HNAMEC"": ""李大仁"",
+                                    ""HHISNUM"": ""1150107-3"",
                                     ""HNURSTA"": ""W72"",
                                     ""ORDSEQ"": ""789"",
                                     ""UDDDGNPRODUCT"": ""Glucophage tab 500mg"",

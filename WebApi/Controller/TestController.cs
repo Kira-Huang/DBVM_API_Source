@@ -1,4 +1,5 @@
 ﻿using Basic;
+using DBVM_API.Services;
 using HIS_DB_Lib;
 using IBM.Data.DB2.Core;
 using Microsoft.AspNetCore.Http;
@@ -17,36 +18,27 @@ namespace DB2VM
     [ApiController]
     public class TestController : ControllerBase
     {
-        
+        private readonly HospitalApiService _hospitalApi;
+
+        public TestController(HospitalApiService hospitalApi)
+        {
+            _hospitalApi = hospitalApi;
+        }
+
         // GET api/values
         [HttpGet]
         public string Get()
         {
-
-
-            string connString =
-            "User Id=hson_kutech;" +
-            "Password=\"3edc#$56^YHN\";" +
-            "Data Source=192.168.120.123:1521/sisdcp;" +   // 這裡用小寫 sisdcp
-            "Connection Timeout=60;";
-
             try
             {
-                using (var conn = new OracleConnection(connString))
-                {
-                    conn.Open();
-                }
+                var response = _hospitalApi.GetCardUsers();
 
-                return $"Oracle Connecting success! , {connString}";
+                return $"HIS API Connecting success! {response.Result.Success}";
             }
             catch (Exception ex)
             {
-                return $"Oracle Connecting failed! , {ex.GetType().Name} : {ex.Message}";
+                return $"HIS API  Connecting failed! , {ex.GetType().Name} : {ex.Message}";
             }
-
-
         }
-        
-
     }
 }
