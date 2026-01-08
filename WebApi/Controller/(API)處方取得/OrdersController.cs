@@ -1,10 +1,12 @@
 ﻿using Basic;
 using DBVM_API;
+using DBVM_API.Constant;
 using DBVM_API.Models;
 using DBVM_API.Services;
 using HIS_DB_Lib;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -127,6 +129,7 @@ namespace DBVM
                         orderClass.藥袋類型 = enum_藥袋類別.小藥袋.GetDescription();
 
                         //====== 基本欄位 ======
+                        orderClass.GUID = data.ID;
                         orderClass.批序 = data.ORDSEQ;
                         orderClass.產出時間 = data.CREATETIME;
                         orderClass.藥袋條碼 = data.UDBC;
@@ -141,8 +144,10 @@ namespace DBVM
                         orderClass.單次劑量 = data.UDOGIVDOSE;
                         orderClass.劑量單位 = data.UDDDSPUNIT;
                         orderClass.途徑 = data.UDDROUTE;
+                        orderClass.病房 = data.HNURSTA;
                         orderClass.床號 = data.HBEDNO;
-                        orderClass.交易量 = data.QUANTITY;
+                        orderClass.開方日期 = LogicUtility.GetPrescriptionDate(DateTime.Now);
+                        orderClass.交易量 = LogicUtility.GetTradingVolume(data.QUANTITY);
 
                         ////====== PRI_KEY ======                
                         orderClass.PRI_KEY = data.ID;
@@ -197,7 +202,7 @@ namespace DBVM
                             continue;
 
                         //====== 基本欄位 ======
-                        // orderClass.藥袋條碼 = request.BarCode;
+                        orderClass.GUID = data.ID;
                         orderClass.批序 = data.ORDSEQ;
                         orderClass.產出時間 = data.CREATETIME;
                         orderClass.住院序號 = data.ORDSEQ;
@@ -210,8 +215,10 @@ namespace DBVM
                         orderClass.單次劑量 = data.UDDOSAGE;
                         orderClass.頻次 = data.UDFREQN;
                         orderClass.途徑 = data.UDROUTE;
+                        orderClass.病房 = data.HNURSTA;
                         orderClass.床號 = data.BEDNO;
-                        orderClass.交易量 = data.UDDURAT;
+                        orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
+                        orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
 
                         ////====== PRI_KEY ======                
                         orderClass.PRI_KEY = data.ID;
@@ -265,7 +272,7 @@ namespace DBVM
                             continue;
 
                         //====== 基本欄位 ======
-                        // orderClass.藥袋條碼 = request.BarCode;
+                        orderClass.GUID = data.ID;
                         orderClass.批序 = data.ORDSEQ;
                         orderClass.產出時間 = data.CREATETIME;
                         orderClass.住院序號 = data.ORDSEQ;
@@ -278,8 +285,10 @@ namespace DBVM
                         orderClass.單次劑量 = data.UDDOSAGE;
                         orderClass.頻次 = data.UDFREQN;
                         orderClass.途徑 = data.UDROUTE;
+                        orderClass.病房 = data.HNURSTA;
                         orderClass.床號 = data.BEDNO;
-                        orderClass.交易量 = data.UDDURAT;
+                        orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
+                        orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
 
                         ////====== PRI_KEY ======                
                         orderClass.PRI_KEY = data.ID;

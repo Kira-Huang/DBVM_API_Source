@@ -1,5 +1,6 @@
 ﻿using Basic;
 using DBVM_API;
+using DBVM_API.Constant;
 using DBVM_API.Models;
 using DBVM_API.Services;
 using Google.Protobuf.WellKnownTypes;
@@ -68,8 +69,11 @@ namespace DB2VM
                     MyTimerBasic t_db = new MyTimerBasic();                    
                     List<OrderClass> orderClasses = new List<OrderClass>();
                     orderClasses = OrderClass.get_by_MED_BAG_NUM(API_Server, medBagNum);
-                    if (orderClasses != null)
+                    if (orderClasses != null && orderClasses.Count > 0 )
                     {
+                        foreach (var item in orderClasses)
+                            item.藥袋條碼 = barcode;
+
                         returnData_order.Data = orderClasses;
                         HIS藥袋類型 = orderClasses[0].藥袋類型;
                     }
@@ -178,11 +182,12 @@ namespace DB2VM
 
                 // 先查看DB是否有資料 (有資料直接回傳)
                 orderClasses = OrderClass.get_by_barcode(API_Server, request.BarCode);
-                if (orderClasses != null)
+                if (orderClasses != null && orderClasses.Count > 0)
                     isExist = true;
                 else
                 {
                     orderClasses = new List<OrderClass>();
+                    int batchNum = 1;
 
                     // 小藥袋
                     if (smallResult.Success && smallResult.Data != null)
@@ -194,6 +199,8 @@ namespace DB2VM
                         orderClass.藥袋類型 = enum_藥袋類別.小藥袋.GetDescription();
 
                         //====== 基本欄位 ======
+                        orderClass.GUID = data.ID;
+                        orderClass.批序 = batchNum.ToString();
                         orderClass.產出時間 = data.CREATETIME;
                         orderClass.藥袋條碼 = (string.IsNullOrEmpty(data.UDBC)) ? request.BarCode : data.UDBC;
                         orderClass.住院序號 = data.ORDSEQ;
@@ -207,8 +214,10 @@ namespace DB2VM
                         orderClass.單次劑量 = data.UDOGIVDOSE;
                         orderClass.劑量單位 = data.UDDDSPUNIT;
                         orderClass.途徑 = data.UDDROUTE;
+                        orderClass.病房 = data.HNURSTA;
                         orderClass.床號 = data.HBEDNO;
-                        orderClass.交易量 = data.QUANTITY;
+                        orderClass.開方日期 = LogicUtility.GetPrescriptionDate(DateTime.Now);
+                        orderClass.交易量 = LogicUtility.GetTradingVolume(data.QUANTITY);
 
                         ////====== PRI_KEY ======                
                         orderClass.PRI_KEY = data.ID;
@@ -263,6 +272,8 @@ namespace DB2VM
                                 continue;
 
                             //====== 基本欄位 ======
+                            orderClass.GUID = data.ID;
+                            orderClass.批序 = (batchNum++).ToString();
                             orderClass.藥袋條碼 = request.BarCode;
                             orderClass.產出時間 = data.CREATETIME;
                             orderClass.住院序號 = data.ORDSEQ;
@@ -275,7 +286,10 @@ namespace DB2VM
                             orderClass.單次劑量 = data.UDDOSAGE;
                             orderClass.頻次 = data.UDFREQN;
                             orderClass.途徑 = data.UDROUTE;
+                            orderClass.病房 = data.HNURSTA;
                             orderClass.床號 = data.BEDNO;
+                            orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
+                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
 
                             ////====== PRI_KEY ======                
                             orderClass.PRI_KEY = data.ID;
@@ -330,6 +344,8 @@ namespace DB2VM
                                 continue;
 
                             //====== 基本欄位 ======
+                            orderClass.GUID = data.ID;
+                            orderClass.批序 = (batchNum++).ToString();
                             orderClass.藥袋條碼 = request.BarCode;
                             orderClass.產出時間 = data.CREATETIME;
                             orderClass.住院序號 = data.ORDSEQ;
@@ -342,7 +358,10 @@ namespace DB2VM
                             orderClass.單次劑量 = data.UDDOSAGE;
                             orderClass.頻次 = data.UDFREQN;
                             orderClass.途徑 = data.UDROUTE;
+                            orderClass.病房 = data.HNURSTA;
                             orderClass.床號 = data.BEDNO;
+                            orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
+                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
 
                             ////====== PRI_KEY ======                
                             orderClass.PRI_KEY = data.ID;
