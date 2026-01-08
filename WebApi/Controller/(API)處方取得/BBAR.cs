@@ -45,6 +45,7 @@ namespace DB2VM
             string HIS藥袋類型 = "";
             string HISData時間 = "";
             string DB寫入時間 = "";
+            string DB查詢時間 = "";
 
             //===============================
             // 1. 呼叫 HIS API
@@ -53,6 +54,58 @@ namespace DB2VM
             HIS呼叫時間 = t1.ToString();
 
             enum_藥袋類別 bagType;
+
+            if (barcode.Contains(";"))
+            {
+                returnData returnData_order = new returnData();
+                var subStrings = barcode.Split(';');
+
+                if (subStrings.Length >= 4)
+                {
+                    // 取得領藥號  
+                    string medBagNum = string.Concat(subStrings[2], "-", subStrings[3]);
+
+                    MyTimerBasic t_db = new MyTimerBasic();                    
+                    List<OrderClass> orderClasses = new List<OrderClass>();
+                    orderClasses = OrderClass.get_by_MED_BAG_NUM(API_Server, medBagNum);
+                    if (orderClasses != null)
+                    {
+                        returnData_order.Data = orderClasses;
+                        HIS藥袋類型 = orderClasses[0].藥袋類型;
+                    }
+                    else
+                    {
+                        // 沒有產出 orderClasses
+                        returnData_order = new returnData()
+                        {
+                            Code = -201,
+                            Result = $"未查詢到領藥號:{medBagNum}, 請重整時間搜尋orders"
+                        };
+                        return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
+                    }
+
+                    DB查詢時間 = t_db.ToString();
+
+                    returnData_order.Value = medBagNum;
+                    returnData_order.TimeTaken += $"{timerTotal}";
+                    returnData_order.Result += $"領藥號{medBagNum}，藥袋類型:{HIS藥袋類型}，DB查詢時間:{DB查詢時間}";
+
+                    string json = returnData_order.JsonSerializationt(true);
+                    Logger.Log(json);
+                    return Ok(returnData_order);
+                }
+                else
+                {
+                    // 沒有產出 orderClasses
+                    returnData_order = new returnData()
+                    {
+                        Code = -201,
+                        Result = "異常條碼請確認"
+                    };
+                    return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
+                }
+            }
+
 
             // 管制櫃各類型的藥袋都刷刷看  有資料就開藥盒
             // 小藥袋
@@ -377,7 +430,7 @@ namespace DB2VM
                 return Content($"HIS系統資料解析異常 (Row)：{ex.Message}", "text/plain; charset=utf-8");
             }
         }
-
+                
         /// <summary>
         /// 測試字串
         /// </summary>
