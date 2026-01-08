@@ -37,6 +37,7 @@ namespace DBVM
         public SmallDrugController(HospitalApiService hospitalApi)
         {
             _hospitalApi = hospitalApi;
+            API_Server = hospitalApi.API_Server;
         }
 
         [HttpPost("barcode")]

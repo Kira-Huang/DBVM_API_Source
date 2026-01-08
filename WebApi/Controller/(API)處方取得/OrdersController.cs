@@ -16,13 +16,13 @@ namespace DBVM
     [ApiController]
     public class OrdersController : Controller
     {
-        //private string API_Server = "https://localhost:44318";
         private string API_Server = "https://127.0.0.1:4433";
 
         private readonly HospitalApiService _hospitalApi;
         public OrdersController(HospitalApiService hospitalApi)
         {
             _hospitalApi = hospitalApi;
+            API_Server = _hospitalApi.API_Server;
         }
 
         /// <summary>

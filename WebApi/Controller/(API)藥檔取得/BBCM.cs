@@ -1,17 +1,18 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Basic;
+using DBVM_API.Services;
+using HIS_DB_Lib;
+using IBM.Data.DB2.Core;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using IBM.Data.DB2.Core;
-using System.Data;
 using System.Configuration;
-using Basic;
-using Oracle.ManagedDataAccess.Client;
-using System.Text;
-using HIS_DB_Lib;
+using System.Data;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
 
 
 
@@ -25,6 +26,13 @@ namespace DB2VM_API.Controller
     {
         static public string API_Server = "http://127.0.0.1:4433";
 
+        private readonly HospitalApiService _hospitalApi;
+
+        public BBCM(HospitalApiService hospitalApi)
+        {
+            _hospitalApi = hospitalApi;
+            API_Server = hospitalApi.API_Server;    
+        }
 
         [HttpGet]
         public string Get(string? stockcode)

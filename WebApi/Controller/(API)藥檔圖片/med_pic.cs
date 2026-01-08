@@ -1,4 +1,5 @@
 ﻿using Basic;
+using DBVM_API.Services;
 using HIS_DB_Lib;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
@@ -25,6 +26,14 @@ namespace DB2VM_API.Controller._API_藥檔圖片
     {
         static private string API_Server = "http://127.0.0.1:4433";
         static private MySqlSslMode SSLMode = MySqlSslMode.None;
+
+        private readonly HospitalApiService _hospitalApi;
+        public med_pic(HospitalApiService hospitalApi)
+        {
+            _hospitalApi = hospitalApi;
+            API_Server = hospitalApi.API_Server;
+        }
+
         [HttpGet]
         public string get()
         {

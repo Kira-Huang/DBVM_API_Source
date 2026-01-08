@@ -23,13 +23,13 @@ namespace DB2VM
     [ApiController]
     public class BBARController : ControllerBase
     {
-        //private string API_Server = "https://localhost:44318";
         private string API_Server = "https://127.0.0.1:4433";
 
         private readonly HospitalApiService _hospitalApi;
         public BBARController(HospitalApiService hospitalApi)
         {
             _hospitalApi = hospitalApi;
+            API_Server = hospitalApi.API_Server;
         }
 
         /// <summary>
