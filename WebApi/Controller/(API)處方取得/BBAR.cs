@@ -72,11 +72,15 @@ namespace DB2VM
                     if (orderClasses != null && orderClasses.Count > 0 )
                     {
                         foreach (var item in orderClasses)
+                        {
                             item.藥袋條碼 = barcode;
-
+                            UpdateDataBaseService.UpdateBarcodeByGuid(item.GUID, barcode);
+                        }
                         returnData_order.Data = orderClasses;
                         HIS藥袋類型 = orderClasses[0].藥袋類型;
-                        OrderClass.updete_by_guid(API_Server, orderClasses);
+                        //OrderClass.updete_by_guid(API_Server, orderClasses);
+                        //OrderClass.update_order_list_new(API_Server, orderClasses);
+                        //OrderClass.update_order_list(API_Server, orderClasses);
                     }
                     else
                     {

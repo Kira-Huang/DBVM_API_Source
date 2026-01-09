@@ -23,7 +23,7 @@ namespace DBVM_API.Constant
         /// <returns>開方日期字串 (格式 yyyyMMdd HH:mm:ss)</returns>
         public static string GetPrescriptionDate(DateTime time)
         {
-            return time.ToString("yyyyMMdd HH:mm:ss");
+            return time.ToString("yyyy/MM/dd HH:mm:ss");
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace DBVM_API.Constant
             else
             {
 
-                return DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
+                return DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
             }
         }
 
