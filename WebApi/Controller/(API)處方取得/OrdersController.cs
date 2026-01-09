@@ -157,6 +157,9 @@ namespace DBVM
                             orderClass.開方日期 = LogicUtility.GetPrescriptionDate(DateTime.Now);
                             orderClass.交易量 = LogicUtility.GetTradingVolume(data.QUANTITY);
 
+                            if (!string.IsNullOrEmpty(LogicUtility.GetMedBagType(orderClass)))
+                                orderClass.藥袋類型 = LogicUtility.GetMedBagType(orderClass);
+
                             ////====== PRI_KEY ======                
                             orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
 
@@ -237,6 +240,9 @@ namespace DBVM
                             orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
                             orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
 
+                            if (!string.IsNullOrEmpty(LogicUtility.GetMedBagType(orderClass)))
+                                orderClass.藥袋類型 = LogicUtility.GetMedBagType(orderClass);
+
                             ////====== PRI_KEY ======                
                             orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
 
@@ -314,6 +320,9 @@ namespace DBVM
                             orderClass.床號 = data.BEDNO;
                             orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
                             orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
+
+                            if (!string.IsNullOrEmpty(LogicUtility.GetMedBagType(orderClass)))
+                                orderClass.藥袋類型 = LogicUtility.GetMedBagType(orderClass);
 
                             ////====== PRI_KEY ======                
                             orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);

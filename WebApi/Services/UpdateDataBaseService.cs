@@ -1,4 +1,6 @@
-﻿using MySql.Data.MySqlClient;
+﻿using DBVM_API.Constant;
+using HIS_DB_Lib;
+using MySql.Data.MySqlClient;
 
 namespace DBVM_API.Services
 {
@@ -9,18 +11,22 @@ namespace DBVM_API.Services
         /// <summary>
         /// 依 GUID 更新藥袋條碼
         /// </summary>
-        public static bool UpdateBarcodeByGuid(string guid, string barcode)
+        public static bool UpdateBarcodeByGuid(OrderClass orderClass)
         {
             string sql = @"UPDATE order_list
                            SET 藥袋條碼 = @barcode
+                               藥袋類型 = @bagType
                            WHERE GUID = @guid;
                          ";
 
             using (var conn = new MySqlConnection(ConnectionString))
             using (var cmd = new MySqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@guid", guid);
-                cmd.Parameters.AddWithValue("@barcode", barcode);
+                cmd.Parameters.AddWithValue("@guid", orderClass.GUID);
+                cmd.Parameters.AddWithValue("@barcode", orderClass.藥袋條碼);
+                if (string.IsNullOrEmpty(LogicUtility.GetMedBagType(orderClass)))
+                    orderClass.藥袋類型 = LogicUtility.GetMedBagType(orderClass);
+                cmd.Parameters.AddWithValue("@bagType", orderClass.藥袋類型);
 
                 conn.Open();
                 int affectedRows = cmd.ExecuteNonQuery();

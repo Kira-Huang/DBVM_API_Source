@@ -74,7 +74,7 @@ namespace DB2VM
                         foreach (var item in orderClasses)
                         {
                             item.藥袋條碼 = barcode;
-                            UpdateDataBaseService.UpdateBarcodeByGuid(item.GUID, barcode);
+                            UpdateDataBaseService.UpdateBarcodeByGuid(item);
                         }
                         returnData_order.Data = orderClasses;
                         HIS藥袋類型 = orderClasses[0].藥袋類型;
