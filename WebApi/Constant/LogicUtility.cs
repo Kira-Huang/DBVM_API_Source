@@ -79,14 +79,17 @@ namespace DBVM_API.Constant
             // 序號  2 急診 住院  5 9門診            
             if (orderClass.領藥號.Contains("ER") || orderClass.床號.Contains("ER"))
                 return "PHER";
-            
-            if (orderClass.藥袋條碼.Contains(";"))
+
+            if (!string.IsNullOrEmpty(orderClass.藥袋條碼))
             {
-                var parts = orderClass.藥袋條碼.Split(';');
-                if (parts[0] == "5" || parts[0] == "9")
-                    return "OPD";
-                if (parts[0] == "2")
-                    return "UD";
+                if (orderClass.藥袋條碼.Contains(";"))
+                {
+                    var parts = orderClass.藥袋條碼.Split(';');
+                    if (parts[0] == "5" || parts[0] == "9")
+                        return "OPD";
+                    if (parts[0] == "2")
+                        return "UD";
+                }
             }
 
             return string.Empty;

@@ -14,9 +14,9 @@ namespace DBVM_API.Services
         public static bool UpdateBarcodeByGuid(OrderClass orderClass)
         {
             string sql = @"UPDATE order_list
-                           SET 藥袋條碼 = @barcode
-                               藥袋類型 = @bagType
-                           WHERE GUID = @guid;
+                           SET `藥袋條碼` = @barcode,
+                               `藥袋類型` = @bagType
+                           WHERE `GUID` = @guid;
                          ";
 
             using (var conn = new MySqlConnection(ConnectionString))
@@ -24,8 +24,11 @@ namespace DBVM_API.Services
             {
                 cmd.Parameters.AddWithValue("@guid", orderClass.GUID);
                 cmd.Parameters.AddWithValue("@barcode", orderClass.藥袋條碼);
-                if (string.IsNullOrEmpty(LogicUtility.GetMedBagType(orderClass)))
-                    orderClass.藥袋類型 = LogicUtility.GetMedBagType(orderClass);
+
+                var bagType = LogicUtility.GetMedBagType(orderClass);
+                if (!string.IsNullOrEmpty(bagType))
+                    orderClass.藥袋類型 = bagType;
+
                 cmd.Parameters.AddWithValue("@bagType", orderClass.藥袋類型);
 
                 conn.Open();
