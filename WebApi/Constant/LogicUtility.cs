@@ -35,7 +35,7 @@ namespace DBVM_API.Constant
         {             
             if (DateTime.TryParse(time, out DateTime dt))
             {
-                return dt.ToString("yyyyMMdd HH:mm:ss");
+                return dt.ToString("yyyy/MM/dd HH:mm:ss");
             }
             else
             {
@@ -62,7 +62,7 @@ namespace DBVM_API.Constant
         /// <returns>組好的Pri_Key</returns>
         public static string GetPrimaryKey(OrderClass orderClass)
         {
-            string 時間 = GetPrescriptionDate(orderClass.開方日期);
+            string 時間 = GetSimplePrescriptionDate(orderClass.開方日期);
 
             //====== PRI_KEY ======
             string key = $"{orderClass.頻次}{orderClass.天數}{orderClass.單次劑量}{orderClass.劑量單位}";

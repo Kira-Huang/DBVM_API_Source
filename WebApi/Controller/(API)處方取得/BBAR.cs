@@ -76,6 +76,7 @@ namespace DB2VM
 
                         returnData_order.Data = orderClasses;
                         HIS藥袋類型 = orderClasses[0].藥袋類型;
+                        OrderClass.updete_by_guid(API_Server, orderClasses);
                     }
                     else
                     {
@@ -452,7 +453,7 @@ namespace DB2VM
                 return Content($"HIS系統資料解析異常 (Row)：{ex.Message}", "text/plain; charset=utf-8");
             }
         }
-                
+
         /// <summary>
         /// 測試字串
         /// </summary>
