@@ -19,8 +19,8 @@ namespace DBVM_API.Services
             using (var conn = new MySqlConnection(ConnectionString))
             using (var cmd = new MySqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@GUID", guid);
-                cmd.Parameters.AddWithValue("@藥袋條碼", barcode);
+                cmd.Parameters.AddWithValue("@guid", guid);
+                cmd.Parameters.AddWithValue("@barcode", barcode);
 
                 conn.Open();
                 int affectedRows = cmd.ExecuteNonQuery();

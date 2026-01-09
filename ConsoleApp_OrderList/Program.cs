@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ConsoleApp_OrderList
@@ -14,6 +15,13 @@ namespace ConsoleApp_OrderList
 
         static async Task Main(string[] args)
         {
+            Mutex mutex = new Mutex(true, "Orderlist_Mutex", out bool created);
+            if (!created)
+            {
+                Console.WriteLine("已有程序執行，結束本次執行");
+                return;
+            }
+
             DateTime today = DateTime.Now;
 
             string startDate = today.ToString("yyyyMMdd") + "000001";

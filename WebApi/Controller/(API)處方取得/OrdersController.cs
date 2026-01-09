@@ -35,7 +35,7 @@ namespace DBVM
         /// <param name="complete">Y = 取得已讀取 / N = 取得未讀取 / 不傳 = 取得全部</param>
         /// <returns></returns>
         [HttpGet("")]
-        public async Task<IActionResult> GetOrders([FromQuery]string startDate, string endDate, string complete = null)
+        public async Task<IActionResult> GetOrders([FromQuery] string startDate, string endDate, string complete = null)
         {
             MyTimerBasic timerTotal = new MyTimerBasic();
             string HIS呼叫時間 = "";
@@ -121,7 +121,7 @@ namespace DBVM
 
                 if (smallResult.Success && smallResult.Data != null && smallResult.Data.Count > 0)
                 {
-                    var groupsByOrdSeq = smallResult.Data.GroupBy(d => d.ORDSEQ);
+                    var groupsByOrdSeq = smallResult.Data.GroupBy(d => d.ENCNTNO);
 
                     foreach (var group in groupsByOrdSeq)
                     {
@@ -136,10 +136,11 @@ namespace DBVM
 
                             //====== 基本欄位 ======
                             orderClass.GUID = data.ID;
-                            orderClass.批序 = (batchNum++).ToString();
+                            // orderClass.批序 = (batchNum++).ToString();
+                            orderClass.批序 = data.ORDSEQ;
                             orderClass.產出時間 = data.CREATETIME;
                             orderClass.藥袋條碼 = data.UDBC;
-                            orderClass.住院序號 = data.ORDSEQ;
+                            orderClass.住院序號 = data.ENCNTNO;
                             orderClass.就醫序號 = data.ENCNTNO;
                             orderClass.藥品碼 = data.UDDDRGCODE;
                             orderClass.藥品名稱 = data.UDDDGNMATERIAL;
@@ -199,7 +200,7 @@ namespace DBVM
 
                 if (dayResult.Success && dayResult.Data != null && dayResult.Data.Count > 0)
                 {
-                    var groupsByOrdSeq = dayResult.Data.GroupBy(d => d.ORDSEQ);
+                    var groupsByOrdSeq = dayResult.Data.GroupBy(d => d.ENCNTNO);
 
                     foreach (var group in groupsByOrdSeq)
                     {
@@ -217,9 +218,10 @@ namespace DBVM
 
                             //====== 基本欄位 ======
                             orderClass.GUID = data.ID;
-                            orderClass.批序 = (batchNum++).ToString();
+                            // orderClass.批序 = (batchNum++).ToString();
+                            orderClass.批序 = data.ORDSEQ;
                             orderClass.產出時間 = data.CREATETIME;
-                            orderClass.住院序號 = data.ORDSEQ;
+                            orderClass.住院序號 = data.ENCNTNO;
                             orderClass.就醫序號 = data.ENCNTNO;
                             orderClass.藥品碼 = data.UDDRGNO;
                             orderClass.藥品名稱 = data.UDDDGNMATERIAL;
@@ -278,7 +280,7 @@ namespace DBVM
 
                 if (dischargeResult.Success && dischargeResult.Data != null && dischargeResult.Data.Count > 0)
                 {
-                    var groupsByOrdSeq = dischargeResult.Data.GroupBy(d => d.ORDSEQ);
+                    var groupsByOrdSeq = dischargeResult.Data.GroupBy(d => d.ENCNTNO);
 
                     foreach (var group in groupsByOrdSeq)
                     {
@@ -294,9 +296,10 @@ namespace DBVM
 
                             //====== 基本欄位 ======
                             orderClass.GUID = data.ID;
-                            orderClass.批序 = (batchNum++).ToString();
+                            // orderClass.批序 = (batchNum++).ToString();
+                            orderClass.批序 = data.ORDSEQ;
                             orderClass.產出時間 = data.CREATETIME;
-                            orderClass.住院序號 = data.ORDSEQ;
+                            orderClass.住院序號 = data.ENCNTNO;
                             orderClass.就醫序號 = data.ENCNTNO;
                             orderClass.藥品碼 = data.UDDRGNO;
                             orderClass.藥品名稱 = data.UDDDGNMATERIAL;
