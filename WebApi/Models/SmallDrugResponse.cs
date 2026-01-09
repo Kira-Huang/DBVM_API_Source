@@ -101,6 +101,12 @@ namespace DBVM_API.Models
         public string UDDDSPUNIT { get; set; }
 
         /// <summary>
+        /// 頻次
+        /// </summary>
+        [JsonProperty("UDOGIVFREQN")]
+        public string UDOGIVFREQN { get; set; }
+
+        /// <summary>
         /// 副作用
         /// </summary>
         [JsonProperty("SIDEEFFECT")]

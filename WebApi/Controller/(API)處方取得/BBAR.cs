@@ -196,7 +196,7 @@ namespace DB2VM
                         var data = smallResult.Data;
 
                         //====== 藥袋類型 ======
-                        orderClass.藥袋類型 = enum_藥袋類別.小藥袋.GetDescription();
+                        orderClass.藥袋類型 = enum_藥袋類別.小藥袋.GetDisplayName();
 
                         //====== 基本欄位 ======
                         orderClass.GUID = data.ID;
@@ -213,6 +213,7 @@ namespace DB2VM
                         orderClass.科別 = data.SECT;
                         orderClass.單次劑量 = data.UDOGIVDOSE;
                         orderClass.劑量單位 = data.UDDDSPUNIT;
+                        orderClass.頻次 = data.UDOGIVFREQN;
                         orderClass.途徑 = data.UDDROUTE;
                         orderClass.病房 = data.HNURSTA;
                         orderClass.床號 = data.HBEDNO;
@@ -220,7 +221,7 @@ namespace DB2VM
                         orderClass.交易量 = LogicUtility.GetTradingVolume(data.QUANTITY);
 
                         ////====== PRI_KEY ======                
-                        orderClass.PRI_KEY = data.ID;
+                        orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
 
                         orderClasses.Add(orderClass);
 
@@ -267,7 +268,7 @@ namespace DB2VM
 
                             //====== 藥袋類型 ======
                             if (dayRequest.Category.TryToEnumFromDescription(out enum_藥袋類別 category))
-                                orderClass.藥袋類型 = category.GetDescription();
+                                orderClass.藥袋類型 = category.GetDisplayName();
                             else
                                 continue;
 
@@ -283,7 +284,8 @@ namespace DB2VM
                             orderClass.病人姓名 = data.HNAMEC;
                             orderClass.病歷號 = data.HHISNUM;
                             orderClass.領藥號 = data.DISPNO;
-                            orderClass.單次劑量 = data.UDDOSAGE;
+                            orderClass.單次劑量 = LogicUtility.ParseDose(data.UDDOSAGE).SingleDose;
+                            orderClass.劑量單位 = LogicUtility.ParseDose(data.UDDOSAGE).DoseUnit;
                             orderClass.頻次 = data.UDFREQN;
                             orderClass.途徑 = data.UDROUTE;
                             orderClass.病房 = data.HNURSTA;
@@ -292,7 +294,7 @@ namespace DB2VM
                             orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
 
                             ////====== PRI_KEY ======                
-                            orderClass.PRI_KEY = data.ID;
+                            orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
 
                             orderClasses.Add(orderClass);
 
@@ -339,7 +341,7 @@ namespace DB2VM
                             OrderClass orderClass = new OrderClass();
                             //====== 藥袋類型 ======
                             if (dischargeRequest.Category.TryToEnumFromDescription(out enum_藥袋類別 category))
-                                orderClass.藥袋類型 = category.GetDescription();
+                                orderClass.藥袋類型 = category.GetDisplayName();
                             else
                                 continue;
 
@@ -355,7 +357,8 @@ namespace DB2VM
                             orderClass.病人姓名 = data.HNAMEC;
                             orderClass.病歷號 = data.HHISNUM;
                             orderClass.領藥號 = data.DISPNO;
-                            orderClass.單次劑量 = data.UDDOSAGE;
+                            orderClass.單次劑量 = LogicUtility.ParseDose(data.UDDOSAGE).SingleDose;
+                            orderClass.劑量單位 = LogicUtility.ParseDose(data.UDDOSAGE).DoseUnit;
                             orderClass.頻次 = data.UDFREQN;
                             orderClass.途徑 = data.UDROUTE;
                             orderClass.病房 = data.HNURSTA;
@@ -364,7 +367,7 @@ namespace DB2VM
                             orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
 
                             ////====== PRI_KEY ======                
-                            orderClass.PRI_KEY = data.ID;
+                            orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
 
                             orderClasses.Add(orderClass);
 
