@@ -143,7 +143,7 @@ namespace DBVM
                             orderClass.住院序號 = data.ENCNTNO;
                             orderClass.就醫序號 = data.ENCNTNO;
                             orderClass.藥品碼 = data.UDDDRGCODE;
-                            orderClass.藥品名稱 = data.UDDDGNMATERIAL;
+                            orderClass.藥品名稱 = data.UDDDGNPRODUCT;
                             orderClass.病人姓名 = data.HNAMEC;
                             orderClass.病歷號 = data.HHISTNUM;
                             orderClass.領藥號 = data.DISPNO;
@@ -227,7 +227,7 @@ namespace DBVM
                             orderClass.住院序號 = data.ENCNTNO;
                             orderClass.就醫序號 = data.ENCNTNO;
                             orderClass.藥品碼 = data.UDDRGNO;
-                            orderClass.藥品名稱 = data.UDDDGNMATERIAL;
+                            orderClass.藥品名稱 = data.UDDDGNPRODUCT;
                             orderClass.病人姓名 = data.HNAMEC;
                             orderClass.病歷號 = data.HHISNUM;
                             orderClass.領藥號 = data.DISPNO;
@@ -238,7 +238,7 @@ namespace DBVM
                             orderClass.病房 = data.HNURSTA;
                             orderClass.床號 = data.BEDNO;
                             orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
-                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
+                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDQNTY);
 
                             if (!string.IsNullOrEmpty(LogicUtility.GetMedBagType(orderClass)))
                                 orderClass.藥袋類型 = LogicUtility.GetMedBagType(orderClass);
@@ -308,7 +308,7 @@ namespace DBVM
                             orderClass.住院序號 = data.ENCNTNO;
                             orderClass.就醫序號 = data.ENCNTNO;
                             orderClass.藥品碼 = data.UDDRGNO;
-                            orderClass.藥品名稱 = data.UDDDGNMATERIAL;
+                            orderClass.藥品名稱 = data.UDDDGNPRODUCT;
                             orderClass.病人姓名 = data.HNAMEC;
                             orderClass.病歷號 = data.HHISNUM;
                             orderClass.領藥號 = data.DISPNO;
@@ -319,7 +319,7 @@ namespace DBVM
                             orderClass.病房 = data.HNURSTA;
                             orderClass.床號 = data.BEDNO;
                             orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
-                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
+                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDQNTY);
 
                             if (!string.IsNullOrEmpty(LogicUtility.GetMedBagType(orderClass)))
                                 orderClass.藥袋類型 = LogicUtility.GetMedBagType(orderClass);

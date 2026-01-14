@@ -39,7 +39,7 @@ namespace DB2VM
         /// <param name="barcode">barcode</param>
         /// <returns></returns>
         [HttpGet("")]
-        public async Task<IActionResult> GetOrder([FromQuery] string barcode)
+        public async Task<string> GetOrder([FromQuery] string barcode)
         {
             MyTimerBasic timerTotal = new MyTimerBasic();
             string HIS呼叫時間 = "";
@@ -66,16 +66,17 @@ namespace DB2VM
                     // 取得領藥號  
                     string medBagNum = string.Concat(subStrings[2], "-", subStrings[3]);
 
-                    MyTimerBasic t_db = new MyTimerBasic();                    
+                    MyTimerBasic t_db = new MyTimerBasic();
                     List<OrderClass> orderClasses = new List<OrderClass>();
                     orderClasses = OrderClass.get_by_MED_BAG_NUM(API_Server, medBagNum);
-                    if (orderClasses != null && orderClasses.Count > 0 )
+                    if (orderClasses != null && orderClasses.Count > 0)
                     {
                         foreach (var item in orderClasses)
                         {
                             item.藥袋條碼 = barcode;
                             UpdateDataBaseService.UpdateBarcodeByGuid(item);
                         }
+                        returnData_order.Code = 200;
                         returnData_order.Data = orderClasses;
                         HIS藥袋類型 = orderClasses[0].藥袋類型;
                         //OrderClass.updete_by_guid(API_Server, orderClasses);
@@ -83,6 +84,7 @@ namespace DB2VM
                         //OrderClass.update_order_list(API_Server, orderClasses);
                     }
                     else
+
                     {
                         // 沒有產出 orderClasses
                         returnData_order = new returnData()
@@ -90,7 +92,8 @@ namespace DB2VM
                             Code = -201,
                             Result = $"未查詢到領藥號:{medBagNum}, 請重整時間搜尋orders"
                         };
-                        return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
+                        // return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
+                        return returnData_order.JsonSerializationt(true);
                     }
 
                     DB查詢時間 = t_db.ToString();
@@ -101,7 +104,8 @@ namespace DB2VM
 
                     string json = returnData_order.JsonSerializationt(true);
                     Logger.Log(json);
-                    return Ok(returnData_order);
+                    //return Ok(returnData_order);
+                    return json;
                 }
                 else
                 {
@@ -111,7 +115,8 @@ namespace DB2VM
                         Code = -201,
                         Result = "異常條碼請確認"
                     };
-                    return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
+                    //return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
+                    returnData_order.JsonSerializationt(true);
                 }
             }
 
@@ -173,7 +178,8 @@ namespace DB2VM
                     TimeTaken = timerTotal.ToString(),
                     Result = "無此藥袋資料!"
                 };
-                return Content(rd.JsonSerializationt(true), "application/json; charset=utf-8");
+                //return Content(rd.JsonSerializationt(true), "application/json; charset=utf-8");
+                return rd.JsonSerializationt(true);
             }
 
             //===============================
@@ -205,13 +211,13 @@ namespace DB2VM
 
                         //====== 基本欄位 ======
                         orderClass.GUID = data.ID;
-                        orderClass.批序 = batchNum.ToString();
+                        orderClass.批序 = data.ORDSEQ;
                         orderClass.產出時間 = data.CREATETIME;
                         orderClass.藥袋條碼 = (string.IsNullOrEmpty(data.UDBC)) ? request.BarCode : data.UDBC;
-                        orderClass.住院序號 = data.ORDSEQ;
+                        orderClass.住院序號 = data.ENCNTNO;
                         orderClass.就醫序號 = data.ENCNTNO;
                         orderClass.藥品碼 = data.UDDDRGCODE;
-                        orderClass.藥品名稱 = data.UDDDGNMATERIAL;
+                        orderClass.藥品名稱 = data.UDDDGNPRODUCT;
                         orderClass.病人姓名 = data.HNAMEC;
                         orderClass.病歷號 = data.HHISTNUM;
                         orderClass.領藥號 = data.DISPNO;
@@ -285,7 +291,7 @@ namespace DB2VM
                             orderClass.住院序號 = data.ORDSEQ;
                             orderClass.就醫序號 = data.ENCNTNO;
                             orderClass.藥品碼 = data.UDDRGNO;
-                            orderClass.藥品名稱 = data.UDDDGNMATERIAL;
+                            orderClass.藥品名稱 = data.UDDDGNPRODUCT;
                             orderClass.病人姓名 = data.HNAMEC;
                             orderClass.病歷號 = data.HHISNUM;
                             orderClass.領藥號 = data.DISPNO;
@@ -296,7 +302,7 @@ namespace DB2VM
                             orderClass.病房 = data.HNURSTA;
                             orderClass.床號 = data.BEDNO;
                             orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
-                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
+                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDQNTY);
 
                             ////====== PRI_KEY ======                
                             orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
@@ -358,7 +364,7 @@ namespace DB2VM
                             orderClass.住院序號 = data.ORDSEQ;
                             orderClass.就醫序號 = data.ENCNTNO;
                             orderClass.藥品碼 = data.UDDRGNO;
-                            orderClass.藥品名稱 = data.UDDDGNMATERIAL;
+                            orderClass.藥品名稱 = data.UDDDGNPRODUCT;
                             orderClass.病人姓名 = data.HNAMEC;
                             orderClass.病歷號 = data.HHISNUM;
                             orderClass.領藥號 = data.DISPNO;
@@ -369,7 +375,7 @@ namespace DB2VM
                             orderClass.病房 = data.HNURSTA;
                             orderClass.床號 = data.BEDNO;
                             orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
-                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDDURAT);
+                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDQNTY);
 
                             ////====== PRI_KEY ======                
                             orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
@@ -431,11 +437,15 @@ namespace DB2VM
                             Code = -201,
                             Result = "資料轉換發生問題，未產生 OrderClass"
                         };
-                        return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
+                        //return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
+                        return returnData_order.JsonSerializationt(true);
                     }
                 }
                 else
+                {
+                    returnData_order.Code = 200;
                     returnData_order.Data = orderClasses;
+                }
 
                 DB寫入時間 = t_db.ToString();
 
@@ -449,12 +459,14 @@ namespace DB2VM
 
                 string json = returnData_order.JsonSerializationt(true);
                 Logger.Log(json);
-                return Ok(returnData_order);
+                //return Ok(returnData_order);
+                return json;
 
             }
             catch (Exception ex)
             {
-                return Content($"HIS系統資料解析異常 (Row)：{ex.Message}", "text/plain; charset=utf-8");
+                //return Content($"HIS系統資料解析異常 (Row)：{ex.Message}", "text/plain; charset=utf-8");
+                return $"HIS系統資料解析異常 (Row)：{ex.Message}";
             }
         }
 
