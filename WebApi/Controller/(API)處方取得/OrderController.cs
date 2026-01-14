@@ -25,7 +25,7 @@ namespace DBVM
         /// <param name="med_bag_num">領藥號</param>
         /// <returns></returns>
         [HttpGet("by_med_bag_num")]
-        public IActionResult GetOrderByMedBagNum([FromQuery] string med_bag_num)
+        public string GetOrderByMedBagNum([FromQuery] string med_bag_num)
         {
             MyTimerBasic timerTotal = new MyTimerBasic();
             string API呼叫時間 = "";
@@ -45,7 +45,8 @@ namespace DBVM
 
             string json = returnData_order.JsonSerializationt(true);
             Logger.Log(json);
-            return Ok(returnData_order);
+            // return Ok(returnData_order);
+            return json;
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace DBVM
         /// <param name="patientID"></param>
         /// <returns></returns>
         [HttpGet("by_patient_id")]
-        public IActionResult GetOrderByPatientID([FromQuery] string patientID)
+        public string GetOrderByPatientID([FromQuery] string patientID)
         {
             MyTimerBasic timerTotal = new MyTimerBasic();
             string API呼叫時間 = "";
@@ -74,7 +75,8 @@ namespace DBVM
 
             string json = returnData_order.JsonSerializationt(true);
             Logger.Log(json);
-            return Ok(returnData_order);
+            //return Ok(returnData_order);
+            return json;
         }
     }
 }
