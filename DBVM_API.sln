@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp_medPageCloud", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp_OrderList", "ConsoleApp_OrderList\ConsoleApp_OrderList.csproj", "{DDD5FCE2-EDC7-4498-9B79-7FF81774AE7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp_即時庫存更新", "ConsoleApp_即時庫存更新\ConsoleApp_即時庫存更新.csproj", "{7361115C-2432-4821-89A9-6940994F0EF7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp_即時庫存更新", "ConsoleApp_即時庫存更新\ConsoleApp_即時庫存更新.csproj", "{B16AB86D-32A6-472A-AE53-873C13FFD174}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{DDD5FCE2-EDC7-4498-9B79-7FF81774AE7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDD5FCE2-EDC7-4498-9B79-7FF81774AE7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDD5FCE2-EDC7-4498-9B79-7FF81774AE7E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7361115C-2432-4821-89A9-6940994F0EF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7361115C-2432-4821-89A9-6940994F0EF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7361115C-2432-4821-89A9-6940994F0EF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7361115C-2432-4821-89A9-6940994F0EF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B16AB86D-32A6-472A-AE53-873C13FFD174}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B16AB86D-32A6-472A-AE53-873C13FFD174}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B16AB86D-32A6-472A-AE53-873C13FFD174}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B16AB86D-32A6-472A-AE53-873C13FFD174}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

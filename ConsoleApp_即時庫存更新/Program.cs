@@ -3,8 +3,9 @@ using H_Pannel_lib;
 using HIS_DB_Lib;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ConsoleApp_即時庫存更新
 {
@@ -64,14 +65,14 @@ namespace ConsoleApp_即時庫存更新
                         returnData returnData_add = stockClass.add(API, serverName, serverType, add);
                         if (returnData_add == null)
                             Logger.Log(add.JsonSerializationt(true));
-                        else 
+                        else
                             Logger.Log(returnData_add.JsonSerializationt(true));
                     }
 
                     if (update.Count > 0)
                     {
                         returnData returnData_update = stockClass.update(API, serverName, serverType, update);
-                        if(returnData_update == null)
+                        if (returnData_update == null)
                             Logger.Log(update.JsonSerializationt(true));
                         else
                             Logger.Log(returnData_update.JsonSerializationt(true));
@@ -109,7 +110,7 @@ namespace ConsoleApp_即時庫存更新
                     if (value == null || value.Count == 0)
                         continue;
                     value = value.Where(x => x.消耗量 != "0").ToList();
-                    foreach(var consume in value)
+                    foreach (var consume in value)
                         consume.建立時間 = now;
                     returnData returnData_consumeAdd = consumptionClass.add(API, serverName, serverType, value);
                 }
@@ -117,3 +118,4 @@ namespace ConsoleApp_即時庫存更新
         }
     }
 }
+
