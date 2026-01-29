@@ -19,7 +19,7 @@ namespace DBVM_API.Services
         {
             ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
         };
-        public readonly string API_Server = "http://192.168.5.200:4450";
+        public readonly string API_Server = "http://192.168.5.200:4433";
         public HospitalApiService()
         {
             _client = new HttpClient(_httpClientHandler)

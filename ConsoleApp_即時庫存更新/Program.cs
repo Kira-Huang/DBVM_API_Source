@@ -13,7 +13,7 @@ namespace ConsoleApp_即時庫存更新
     {
         static void Main(string[] args)
         {
-            string API = "http://192.168.5.200:4450";
+            string API = "http://127.0.0.1:4450";
             List<sys_serverSettingClass> settingClasses = sys_serverSettingClass.get_name(API);
             List<medClass> med_cloud = medClass.get_med_cloud(API);
             Dictionary<string, List<medClass>> medCloudDict = medClass.CoverToDictionaryByCode(med_cloud);
@@ -41,6 +41,8 @@ namespace ConsoleApp_即時庫存更新
                 for (int i = 0; i < deviceBasics.Count; i++)
                 {
                     string 藥碼 = deviceBasics[i].BarCode;
+                    //if (藥碼 == "FD020")
+                    //    Logger.Log(deviceBasics[i].JsonSerializationt(true));
                     stockClass stocks = dic_stock.GetByCode(藥碼).FirstOrDefault();
                     code_stock.Add(藥碼);
                     if (stocks == null)
@@ -71,6 +73,7 @@ namespace ConsoleApp_即時庫存更新
 
                     if (update.Count > 0)
                     {
+                        Logger.Log(update.JsonSerializationt(true));
                         returnData returnData_update = stockClass.update(API, serverName, serverType, update);
                         if (returnData_update == null)
                             Logger.Log(update.JsonSerializationt(true));
