@@ -56,108 +56,21 @@ namespace DB2VM
 
             enum_藥袋類別 bagType;
 
-            if (barcode.Contains(";"))
+            // 醫囑藥物品項查詢API
+            MedicationRequest medicationRequest = new MedicationRequest()
             {
-                returnData returnData_order = new returnData();
-                var subStrings = barcode.Split(';');
-
-                if (subStrings.Length >= 4)
-                {
-                    // 取得領藥號  
-                    string medBagNum = string.Concat(subStrings[2], "-", subStrings[3]);
-
-                    MyTimerBasic t_db = new MyTimerBasic();
-                    List<OrderClass> orderClasses = new List<OrderClass>();
-                    orderClasses = OrderClass.get_by_MED_BAG_NUM(API_Server, medBagNum);
-                    if (orderClasses != null && orderClasses.Count > 0)
-                    {
-                        foreach (var item in orderClasses)
-                        {
-                            item.藥袋條碼 = barcode;
-                            UpdateDataBaseService.UpdateBarcodeByGuid(item);
-                        }
-                        returnData_order.Code = 200;
-                        returnData_order.Data = orderClasses;
-                        HIS藥袋類型 = orderClasses[0].藥袋類型;
-                        //OrderClass.updete_by_guid(API_Server, orderClasses);
-                        //OrderClass.update_order_list_new(API_Server, orderClasses);
-                        //OrderClass.update_order_list(API_Server, orderClasses);
-                    }
-                    else
-
-                    {
-                        // 沒有產出 orderClasses
-                        returnData_order = new returnData()
-                        {
-                            Code = -201,
-                            Result = $"未查詢到領藥號:{medBagNum}, 請重整時間搜尋orders"
-                        };
-                        // return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
-                        return returnData_order.JsonSerializationt(true);
-                    }
-
-                    DB查詢時間 = t_db.ToString();
-
-                    returnData_order.Value = medBagNum;
-                    returnData_order.TimeTaken += $"{timerTotal}";
-                    returnData_order.Result += $"領藥號{medBagNum}，藥袋類型:{HIS藥袋類型}，DB查詢時間:{DB查詢時間}";
-
-                    string json = returnData_order.JsonSerializationt(true);
-                    Logger.Log(json);
-                    //return Ok(returnData_order);
-                    return json;
-                }
-                else
-                {
-                    // 沒有產出 orderClasses
-                    returnData_order = new returnData()
-                    {
-                        Code = -201,
-                        Result = "異常條碼請確認"
-                    };
-                    //return Content(returnData_order.JsonSerializationt(true), "application/json; charset=utf-8");
-                    returnData_order.JsonSerializationt(true);
-                }
-            }
-
-
-            // 管制櫃各類型的藥袋都刷刷看  有資料就開藥盒
-            // 小藥袋
-            BarCodeRequest request = new BarCodeRequest()
-            {
-                BarCode = barcode
+                InhospitalNum = 1893834,
+                MedType = "u",
+                BagNum = 1,
+                Barcode = barcode
             };
-            var smallTask = _hospitalApi.GetSmallDrugByBarcode(request);
-
-            // 日間帶藥
-            BardCodeTakeDrugRequest dayRequest = new BardCodeTakeDrugRequest()
-            {
-                BarCode = barcode,
-                Category = enum_藥袋類別.日間帶藥.GetDescription()
-            };
-            var dayTask = _hospitalApi.GetTakeDrugByBarCode(dayRequest);
-
-            // 出院帶藥
-            BardCodeTakeDrugRequest dischargeRequest = new BardCodeTakeDrugRequest()
-            {
-                BarCode = barcode,
-                Category = enum_藥袋類別.出院帶藥.GetDescription()
-            };
-            var dischargeTask = _hospitalApi.GetTakeDrugByBarCode(dischargeRequest);
+            var medicationTask = _hospitalApi.GetFHIRMedicaionRequests(medicationRequest);
 
             // 等待所有任務完成
-            // await Task.WhenAll(smallTask, dayTask, dischargeTask);
-            await Task.WhenAll(smallTask, dayTask, dischargeTask);
+            await Task.WhenAll(medicationTask);
 
             // 取得結果
-            var smallResult = smallTask.Result;
-            var dayResult = dayTask.Result;
-            var dischargeResult = dischargeTask.Result;
-
-            // Test
-            //string test = TestSmallDrugResponse();
-            //smallResult.Success = true;
-            //smallResult.Data = JsonConvert.DeserializeObject<SmallDrugResponse>(test);
+            var medicationResult = medicationTask.Result;
 
             MyTimerBasic t2 = new MyTimerBasic();
             HIS呼叫時間 = t2.ToString();
@@ -166,11 +79,9 @@ namespace DB2VM
             // 2. 無資料處理（全部沒資料）
             //===============================
 
-            bool noSmall = !(smallResult.Success && smallResult.Data != null);
-            bool noDay = !(dayResult.Success && dayResult.Data != null && dayResult.Data.Count > 0);
-            bool noDischarge = !(dischargeResult.Success && dischargeResult.Data != null && dischargeResult.Data.Count > 0);
+            bool noMedication = !(medicationResult.Success && medicationResult.Data != null && medicationResult.Data.Total > 0);
 
-            if (noSmall && noDay && noDischarge)
+            if (noMedication)
             {
                 returnData rd = new returnData()
                 {
@@ -192,7 +103,7 @@ namespace DB2VM
                 bool isExist = false;
 
                 // 先查看DB是否有資料 (有資料直接回傳)
-                orderClasses = OrderClass.get_by_barcode(API_Server, request.BarCode);
+                orderClasses = OrderClass.get_by_barcode(API_Server, barcode);
                 if (orderClasses != null && orderClasses.Count > 0)
                     isExist = true;
                 else
@@ -200,223 +111,44 @@ namespace DB2VM
                     orderClasses = new List<OrderClass>();
                     int batchNum = 1;
 
-                    // 小藥袋
-                    if (smallResult.Success && smallResult.Data != null)
+                    if (medicationResult.Success && medicationResult.Data != null && medicationResult.Data.Total > 0)
                     {
-                        OrderClass orderClass = new OrderClass();
-                        var data = smallResult.Data;
-
-                        //====== 藥袋類型 ======
-                        orderClass.藥袋類型 = enum_藥袋類別.小藥袋.GetDisplayName();
-
-                        //====== 基本欄位 ======
-                        orderClass.GUID = data.ID;
-                        orderClass.批序 = data.ORDSEQ;
-                        orderClass.產出時間 = data.CREATETIME;
-                        orderClass.藥袋條碼 = (string.IsNullOrEmpty(data.UDBC)) ? request.BarCode : data.UDBC;
-                        orderClass.住院序號 = data.ENCNTNO;
-                        orderClass.就醫序號 = data.ENCNTNO;
-                        orderClass.藥品碼 = data.UDDDRGCODE;
-                        orderClass.藥品名稱 = data.UDDDGNPRODUCT;
-                        orderClass.病人姓名 = data.HNAMEC;
-                        orderClass.病歷號 = data.HHISTNUM;
-                        orderClass.領藥號 = data.DISPNO;
-                        orderClass.科別 = data.SECT;
-                        orderClass.單次劑量 = data.UDOGIVDOSE;
-                        orderClass.劑量單位 = data.UDDDSPUNIT;
-                        orderClass.頻次 = data.UDOGIVFREQN;
-                        orderClass.途徑 = data.UDDROUTE;
-                        orderClass.病房 = data.HNURSTA;
-                        orderClass.床號 = data.HBEDNO;
-                        orderClass.開方日期 = LogicUtility.GetPrescriptionDate(DateTime.Now);
-                        orderClass.交易量 = LogicUtility.GetTradingVolume(data.QUANTITY);
-
-                        ////====== PRI_KEY ======                
-                        orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
-
-                        orderClasses.Add(orderClass);
-
-                        #region - 無對應屬性 -
-                        // ===== 無對應（僅註解保留） =====
-                        // data.READTIME          // 讀取時間 → OrderClass 無對應屬性
-                        // data.QUANTITY          // 數量 → OrderClass 無對應屬性
-                        // data.PRINTER          // 印表機號 → OrderClass 無對應屬性
-                        // data.UDOGIVUNIT        // 單位 → OrderClass 無明確對應（非劑量單位）
-                        // data.UDOFUNCT          // 醫囑類別 → OrderClass 無對應屬性
-                        // data.UDDDGNPRODUCT     // 藥品商品名 → OrderClass 無對應屬性
-                        // data.HBIRTHDT          // 生日 → OrderClass 無對應屬性
-                        // data.HNURSTAT          // 護理站 → OrderClass 無對應屬性
-                        // data.INDATE            // 住院日 → OrderClass 無對應屬性
-                        // data.DIAGNOSIS         // 主診斷 → OrderClass 無對應屬性
-                        // data.SIDEEFFECT        // 過敏史 → OrderClass 無對應屬性
-                        // data.INDICATION        // 適應症 → OrderClass 無對應屬性
-
-                        // ===== OrderClass 但 JSON 未提供 =====
-                        // orderClass.EXT_TIME     // JSON 無 EXT_TIME 欄位
-                        // orderClass.交易量        // JSON 無交易量欄位
-                        // orderClass.實際調劑量     // JSON 無實際調劑量欄位
-                        // orderClass.病房          // JSON 無病房欄位
-                        // orderClass.醫師代碼      // JSON 無醫師代碼欄位
-                        // orderClass.頻次          // JSON 無頻次欄位
-                        // orderClass.天數          // JSON 無天數欄位
-                        // orderClass.費用別        // JSON 無費用別欄位
-                        // orderClass.批序          // JSON 無批序欄位
-                        // orderClass.開方日期      // JSON 無開方日期
-                        // orderClass.結方日期      // JSON 無結方日期
-                        // orderClass.核對時間      // JSON 無核對時間
-                        // orderClass.發藥時間      // JSON 無發藥時間
-                        // orderClass.領藥時間      // JSON 無領藥時間
-                        // orderClass.備註          // JSON 無備註欄位
-                        #endregion
-
-                        HIS藥袋類型 = "小藥袋";
-                    }
-                    else if (dayResult.Success && dayResult.Data != null && dayResult.Data.Count > 0)
-                    {
-                        foreach (var data in dayResult.Data)
+                        var list = medicationResult.Data.Entry;
+                        foreach (var data in list)
                         {
                             OrderClass orderClass = new OrderClass();
 
-                            //====== 藥袋類型 ======
-                            if (dayRequest.Category.TryToEnumFromDescription(out enum_藥袋類別 category))
-                                orderClass.藥袋類型 = category.GetDisplayName();
-                            else
-                                continue;
+                            //====== 藥袋類型 ======                            
+                            orderClass.藥袋類型 = data.MedType;
 
                             //====== 基本欄位 ======
-                            orderClass.GUID = data.ID;
+                            orderClass.GUID = data.SerialNo.ToString();   //  用流水序號 ???
                             orderClass.批序 = (batchNum++).ToString();
-                            orderClass.藥袋條碼 = request.BarCode;
-                            orderClass.產出時間 = data.CREATETIME;
-                            orderClass.住院序號 = data.ORDSEQ;
-                            orderClass.就醫序號 = data.ENCNTNO;
-                            orderClass.藥品碼 = data.UDDRGNO;
-                            orderClass.藥品名稱 = data.UDDDGNPRODUCT;
-                            orderClass.病人姓名 = data.HNAMEC;
-                            orderClass.病歷號 = data.HHISNUM;
-                            orderClass.領藥號 = data.DISPNO;
-                            orderClass.單次劑量 = LogicUtility.ParseDose(data.UDDOSAGE).SingleDose;
-                            orderClass.劑量單位 = LogicUtility.ParseDose(data.UDDOSAGE).DoseUnit;
-                            orderClass.頻次 = data.UDFREQN;
-                            orderClass.途徑 = data.UDROUTE;
-                            orderClass.病房 = data.HNURSTA;
-                            orderClass.床號 = data.BEDNO;
-                            orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
-                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDQNTY);
+                            orderClass.藥袋條碼 = barcode;
+                            //orderClass.產出時間 = data.CREATETIME;
+                            orderClass.住院序號 = data.InhospitalNum.ToString();
+                            orderClass.就醫序號 = data.SerialNum.ToString();  // 用醫囑序號?
+                            orderClass.藥品碼 = data.DrugId;
+                            //orderClass.藥品名稱 = data.UDDDGNPRODUCT;
+                            //orderClass.病人姓名 = data.HNAMEC;  
+                            //orderClass.病歷號 = data.HHISNUM;
+                            orderClass.領藥號 = data.BagNum.ToString();
+                            //orderClass.單次劑量 = LogicUtility.ParseDose(data.UDDOSAGE).SingleDose;
+                            //orderClass.劑量單位 = LogicUtility.ParseDose(data.UDDOSAGE).DoseUnit;
+                            //orderClass.頻次 = data.UDFREQN;
+                            //orderClass.途徑 = data.UDROUTE;
+                            //orderClass.病房 = data.HNURSTA;
+                            //orderClass.床號 = data.BEDNO;
+                            orderClass.開方日期 = LogicUtility.GetPrescriptionDate(DateTime.Now);
+                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.FirstQty.ToString());
 
                             ////====== PRI_KEY ======                
                             orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
 
                             orderClasses.Add(orderClass);
-
-                            #region - 無對應屬性 -
-
-                            // ===== 無對應（僅註解保留） =====
-
-                            // data.UDDURAT           // 數量 → OrderClass 無對應屬性
-                            // data.UDQNTY            // 實配量(第一欄位) → OrderClass 無對應屬性
-                            // data.UDQNTY2           // 實配量(第二欄位) → OrderClass 無對應屬性
-                            // data.INDICATION        // 指導內容 → OrderClass 無對應屬性
-                            // data.UDDDGNPRODUCT     // 商品名 → OrderClass 無對應屬性
-                            // data.DIAGNOSIS         // 主診斷 → OrderClass 無對應屬性
-                            // data.HBIRTHDT          // 生日 → OrderClass 無對應屬性
-                            // data.DIAGNOSIS         // 主診斷 → OrderClass 無對應屬性
-                            // data.SIDEEFFECT        // 過敏史 → OrderClass 無對應屬性
-                            // data.ORDDTTM           // 醫囑開立時間 → OrderClass 無對應屬性
-                            // data.UDOINSTRUCTION    // 醫囑備註 → OrderClass 無對應屬性
-
-                            // ===== OrderClass 但 JSON 未提供 =====
-
-                            // orderClass.藥局代碼        // JSON 無藥局代碼
-                            // orderClass.就醫類別        // JSON 無就醫類別
-                            // orderClass.批序            // JSON 無批序
-                            // orderClass.天數            // JSON 無天數
-                            // orderClass.科別            // JSON 無科別名稱
-                            // orderClass.劑量單位        // JSON 無劑量單位
-                            // orderClass.費用別          // JSON 無費用別
-                            // orderClass.醫師代碼        // JSON 無醫師代碼
-                            // orderClass.結方日期        // JSON 無結方日期
-                            // orderClass.核對時間        // JSON 無核對時間
-                            // orderClass.發藥時間        // JSON 無發藥時間
-                            // orderClass.領藥時間        // JSON 無領藥時間
-                            // orderClass.備註          // JSON 無備註欄位
-                            #endregion
                         }
 
-                        HIS藥袋類型 = "日間帶藥";
-                    }
-                    else if (dischargeResult.Success && dischargeResult.Data != null && dischargeResult.Data.Count > 0)
-                    {
-                        foreach (var data in dischargeResult.Data)
-                        {
-                            OrderClass orderClass = new OrderClass();
-                            //====== 藥袋類型 ======
-                            if (dischargeRequest.Category.TryToEnumFromDescription(out enum_藥袋類別 category))
-                                orderClass.藥袋類型 = category.GetDisplayName();
-                            else
-                                continue;
-
-                            //====== 基本欄位 ======
-                            orderClass.GUID = data.ID;
-                            orderClass.批序 = (batchNum++).ToString();
-                            orderClass.藥袋條碼 = request.BarCode;
-                            orderClass.產出時間 = data.CREATETIME;
-                            orderClass.住院序號 = data.ORDSEQ;
-                            orderClass.就醫序號 = data.ENCNTNO;
-                            orderClass.藥品碼 = data.UDDRGNO;
-                            orderClass.藥品名稱 = data.UDDDGNPRODUCT;
-                            orderClass.病人姓名 = data.HNAMEC;
-                            orderClass.病歷號 = data.HHISNUM;
-                            orderClass.領藥號 = data.DISPNO;
-                            orderClass.單次劑量 = LogicUtility.ParseDose(data.UDDOSAGE).SingleDose;
-                            orderClass.劑量單位 = LogicUtility.ParseDose(data.UDDOSAGE).DoseUnit;
-                            orderClass.頻次 = data.UDFREQN;
-                            orderClass.途徑 = data.UDROUTE;
-                            orderClass.病房 = data.HNURSTA;
-                            orderClass.床號 = data.BEDNO;
-                            orderClass.開方日期 = LogicUtility.GetPrescriptionDate(data.ORDDTTM);
-                            orderClass.交易量 = LogicUtility.GetTradingVolume(data.UDQNTY);
-
-                            ////====== PRI_KEY ======                
-                            orderClass.PRI_KEY = LogicUtility.GetPrimaryKey(orderClass);
-
-                            orderClasses.Add(orderClass);
-
-                            #region - 無對應屬性 -
-
-                            // ===== 無對應（僅註解保留） =====
-
-                            // data.UDDURAT           // 數量 → OrderClass 無對應屬性
-                            // data.UDQNTY            // 實配量(第一欄位) → OrderClass 無對應屬性
-                            // data.UDQNTY2           // 實配量(第二欄位) → OrderClass 無對應屬性
-                            // data.INDICATION        // 指導內容 → OrderClass 無對應屬性
-                            // data.UDDDGNPRODUCT     // 商品名 → OrderClass 無對應屬性
-                            // data.DIAGNOSIS         // 主診斷 → OrderClass 無對應屬性
-                            // data.HBIRTHDT          // 生日 → OrderClass 無對應屬性
-                            // data.DIAGNOSIS         // 主診斷 → OrderClass 無對應屬性
-                            // data.SIDEEFFECT        // 過敏史 → OrderClass 無對應屬性
-                            // data.ORDDTTM           // 醫囑開立時間 → OrderClass 無對應屬性
-                            // data.UDOINSTRUCTION    // 醫囑備註 → OrderClass 無對應屬性
-
-                            // ===== OrderClass 但 JSON 未提供 =====
-
-                            // orderClass.藥局代碼        // JSON 無藥局代碼
-                            // orderClass.就醫類別        // JSON 無就醫類別
-                            // orderClass.批序            // JSON 無批序
-                            // orderClass.天數            // JSON 無天數
-                            // orderClass.科別            // JSON 無科別名稱
-                            // orderClass.劑量單位        // JSON 無劑量單位
-                            // orderClass.費用別          // JSON 無費用別
-                            // orderClass.醫師代碼        // JSON 無醫師代碼
-                            // orderClass.結方日期        // JSON 無結方日期
-                            // orderClass.核對時間        // JSON 無核對時間
-                            // orderClass.發藥時間        // JSON 無發藥時間
-                            // orderClass.領藥時間        // JSON 無領藥時間
-                            // orderClass.備註          // JSON 無備註欄位
-                            #endregion
-                        }
-
-                        HIS藥袋類型 = "出院帶藥";
+                        HIS藥袋類型 = "???";
                     }
                 }
 
@@ -449,9 +181,7 @@ namespace DB2VM
 
                 DB寫入時間 = t_db.ToString();
 
-                string returnBarcode = request.BarCode;
-                if (smallResult.Success && smallResult.Data != null && !string.IsNullOrEmpty(smallResult.Data.UDBC))
-                    returnBarcode = smallResult.Data.UDBC;
+                string returnBarcode = barcode;
 
                 returnData_order.Value = returnBarcode;
                 returnData_order.TimeTaken += $"{timerTotal}";
@@ -468,49 +198,6 @@ namespace DB2VM
                 //return Content($"HIS系統資料解析異常 (Row)：{ex.Message}", "text/plain; charset=utf-8");
                 return $"HIS系統資料解析異常 (Row)：{ex.Message}";
             }
-        }
-
-        /// <summary>
-        /// 測試字串
-        /// </summary>
-        /// <returns></returns>
-        public string TestSmallDrugResponse()
-        {
-            string test = @"
-                    {
-                        ""ID"": ""05C812B2-C7FC-4A4C-B5AD-21E811A653DE"",
-                        ""UDOINSTRUCTION"": null,
-                        ""UDDDGNPRODUCT"": ""Neomycin oint 0.5% 28Gm"",
-                        ""HNURSTA"": ""ED1"",
-                        ""HNAMEC"": ""<病人姓名>"",
-                        ""HHISNUM"": ""<病歷號>"",
-                        ""ORDSEQ"": ""Small123"",
-                        ""ENCNTNO"": ""<就診號>"",
-                        ""CREATETIME"": ""2024-08-01 04:18:52.0"",
-                        ""DISPNO"": ""ER-1141"",
-                        ""READTIME"": null,
-                        ""SIDEEFFECT"": ""局部刺激。"",
-                        ""INDICATION"": ""抗生素(消炎)藥膏"",
-                        ""UDQNTY2"": ""-7 TUB"",
-                        ""UDQNTY"": ""-7"",
-                        ""UDDRGNO"": ""AN150"",
-                        ""QUANTITY"": ""1"",
-                        ""BEDNO"": ""<位置>"",
-                        ""UDDOSAGE"": ""0 TUB"",
-                        ""UDDDGNMATERIAL"": ""NEOMYCIN OINT"",
-                        ""UDMDPNAM"": ""Neomycin oint 0.5% 28Gm"",
-                        ""UDROUTE"": ""TOP"",
-                        ""UDFREQN"": ""BID"",
-                        ""UDDMDPNAME"": ""Neomycin oint 0.5% 28Gm"",
-                        ""UDDURAT"": ""7"",
-                        ""ORDDTTM"": ""2024-08-01 03:38:35.0"",
-                        ""SECT"": ""CV"",
-                        ""HBIRTHDT"": ""19910101"",
-                        ""INDATE"": ""20250501"",
-                        ""DIAGNOSIS"": ""xxx""
-                    }";
-
-            return test;
         }
     }
 }

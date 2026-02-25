@@ -28,163 +28,18 @@ namespace DBVM_API.Services
             };
 
             // 院方API Key
-            _client.DefaultRequestHeaders.Add("X-API-KEY", "9684FF26-7032-4574-AFE1-F0D5C4320E3B");
-        }
-
-
-        /// <summary>
-        /// 根據時間區間與註記條件取得小藥袋配方機資料
-        /// </summary>
-        /// <param name="request">根據時間區間與註記條件取得小藥袋配方機資料</param>
-        /// <returns></returns>
-        public Task<(bool Success, List<SmallDrugResponse> Data, string ErrorMessage)> GetSmallDrug(SmallDrugRequest request)
-        {
-            var url = $"{_baseUrl}/smalldrug";
-            var response = PostAndDeserializeAsync<List<SmallDrugResponse>>(url, request);
-            return response;
+            _client.DefaultRequestHeaders.Add("X-KEY", "XQIH4E1XjdsX0zNdCPH7QXs8EKeQhn7w");
         }
 
         /// <summary>
-        /// 根據條碼取得小藥袋配方機資料
+        /// 取得醫囑藥物品項清單，以特定病人與藥號條件查詢。
         /// </summary>
-        /// <param name="barcode">BarCode</param>
+        /// <param name="request">住院序號,類別,領藥號,BarCode</param>
         /// <returns></returns>
-        public Task<(bool Success, SmallDrugResponse Data, string ErrorMessage)> GetSmallDrugByBarcode(BarCodeRequest barcode)
+        public Task<(bool Success, MedicationResponse Data, string ErrorMessage)> GetFHIRMedicaionRequests(MedicationRequest request)
         {
-            var url = $"{_baseUrl}/smalldrug/barcode";
-            var response = PostAndDeserializeAsync<SmallDrugResponse>(url, barcode);
-            return response;
-        }
-
-        /// <summary>
-        /// 取得出院帶藥/日間帶藥配方機資料
-        /// </summary>
-        /// <param name="request">根據時間區間與註記條件取得出院帶藥/日間帶藥配方機資料</param>
-        /// <returns></returns>
-        public Task<(bool Success, List<TakeDrugResponse> Data, string ErrorMessage)> GetTakeDrug(TakeDrugRequest request)
-        {
-            var url = $"{_baseUrl}/takedrug";
-            var response = PostAndDeserializeAsync<List<TakeDrugResponse>>(url, request);
-            return response;
-        }
-
-        /// <summary>
-        /// 根據條碼取得出院帶藥/日間帶藥配方機資料
-        /// </summary>
-        /// <param name="request">根據時間區間與註記條件取得出院帶藥/日間帶藥配方機資料</param>
-        /// <returns></returns>
-        public Task<(bool Success, List<TakeDrugResponse> Data, string ErrorMessage)> GetTakeDrugByBarCode(BardCodeTakeDrugRequest request)
-        {
-            var url = $"{_baseUrl}/takedrug/barcode";
-            var response = PostAndDeserializeAsync<List<TakeDrugResponse>>(url, request);
-            return response;
-        }
-
-        /// <summary>
-        /// 回寫註記欄位
-        /// </summary>
-        /// <param name="request">根據主鍵編號回寫註記欄位</param>
-        /// <returns></returns>
-        public Task<(bool Success, RemarkStatusResponse Data, string ErrorMessage)> RemarkStatus(RemarkStatusRequest request)
-        {
-            var url = $"{_baseUrl}/remarkstatus";
-            var response = PutAndDeserializeAsync<RemarkStatusResponse>(url, request);
-            return response;
-        }
-
-        /// <summary>
-        /// 潘朵拉資料轉換
-        /// </summary>
-        /// <param name="request">同步院內庫存與紀錄</param>
-        /// <returns></returns>
-        public Task<(bool Success, PandoraResponse Data, string ErrorMessage)> Pandora(PandoraRequest request)
-        {
-            var url = $"{_baseUrl}/pandora";
-            var response = PostAndDeserializeAsync<PandoraResponse>(url, request);
-            return response;
-        }
-
-        /// <summary>
-        /// UD藥車加強點收調劑項目
-        /// </summary>
-        /// <param name="time">調劑時間</param>
-        /// <param name="pharmacy">藥局位置</param>
-        /// <returns></returns>
-        public Task<(bool Success, List<UDCartResponse> Data, string ErrorMessage)> GetUDCartInfo(enum_調劑時間 time, enum_藥局位置 pharmacy)
-        {
-            var url = $"{_baseUrl}/UDCart/{time.GetDescription()}/{pharmacy.GetDescription()}";
-            var response = GetAndDeserializeAsync<List<UDCartResponse>>(url);
-            return response;
-        }
-
-        /// <summary>
-        /// 每日補公清單 取得管制藥每日補公清單
-        /// </summary>
-        /// <param name="pharmacy">藥局位置</param>
-        /// <returns></returns>
-        public Task<(bool Success, List<ControlDrugResponse> Data, string ErrorMessage)> GetControlDrugInfoList(enum_藥局位置 pharmacy)
-        {
-            var url = $"{_baseUrl}/controlledDrug/{pharmacy.GetDescription()}";
-            var response = GetAndDeserializeAsync<List<ControlDrugResponse>>(url);
-            return response;
-        }
-
-        /// <summary>
-        /// 管制藥借還 根據條碼取得管制藥借還資料
-        /// </summary>
-        /// <param name="barcode">BarCode</param>
-        /// <returns></returns>
-        public Task<(bool Success, List<ControlDrugLendReturnResponse> Data, string ErrorMessage)> GetControlDrugInfoList(string barcode)
-        {
-            var url = $"{_baseUrl}/controlledDrugLendReturn/{barcode}";
-            var response = GetAndDeserializeAsync<List<ControlDrugLendReturnResponse>>(url);
-            return response;
-        }
-
-        /// <summary>
-        /// 常日配方機  取得常日配方機資料
-        /// </summary>
-        /// <param name="stations">欲接收護理站，使用逗號隔開。例：W105,W102</param>
-        /// <returns></returns>
-        public Task<(bool Success, List<NormalDrugResponse> Data, string ErrorMessage)> GetNormalDrugInfo(string stations)
-        {
-            var url = $"{_baseUrl}/normalDrugMachine/{stations}";
-            var response = GetAndDeserializeAsync<List<NormalDrugResponse>>(url);
-            return response;
-        }
-
-        /// <summary>
-        /// 智慧藥櫃品項  取得對應藥局智慧藥櫃品項
-        /// </summary>
-        /// <param name="position">藥局位置</param>
-        /// <returns></returns>
-        public Task<(bool Success, List<SmartMedCabinetResponse> Data, string ErrorMessage)> GetSmartMedCabinet(enum_藥局位置 position)
-        {
-            var url = $"{_baseUrl}/normalDrugMachine/{position.GetDescription()}";
-            var response = GetAndDeserializeAsync<List<SmartMedCabinetResponse>>(url);
-            return response;
-        }
-
-        /// <summary>
-        /// 取得卡片使用者清單
-        /// </summary>
-        /// <returns></returns>
-        public Task<(bool Success, List<CardUserResponse> Data, string ErrorMessage)> GetCardUsers()
-        {
-            var url = $"{_baseUrl}/pharmacist";
-            var response = GetAndDeserializeAsync<List<CardUserResponse>>(url);
-            return response;
-        }
-
-        /// <summary>
-        /// 藥師登入
-        /// </summary>
-        /// <param name="request">登入項目</param>
-        /// <returns></returns>
-        public Task<(bool Success, PharmacistLoginResponse Data, string ErrorMessage)> PharmacistLogin(PharmacistLoginRequest request)
-        {
-            var url = $"{_baseUrl}/pharmacistLogin";
-            var response = PostAndDeserializeAsync<PharmacistLoginResponse>(url, request);
+            var url = $"{_baseUrl}/System/WS/FHIR_MedicationRequests.asmx/GetMedicationRequests";
+            var response = PostAndDeserializeAsync<MedicationResponse>(url, request);
             return response;
         }
 
